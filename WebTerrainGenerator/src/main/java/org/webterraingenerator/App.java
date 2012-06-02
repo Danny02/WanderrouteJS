@@ -4,7 +4,7 @@ import java.io.*;
 
 import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
-import darwin.jopenctm.compression.MG2Encoder;
+import darwin.jopenctm.compression.MG1Encoder;
 
 /**
  * Hello world!
@@ -19,7 +19,7 @@ public class App
         Model m = new Model(mesh, null);
 
         try (OutputStream out = new FileOutputStream("test2.ctm");) {
-            ModelWriter writer = new CtmModelWriter(new MG2Encoder());
+            ModelWriter writer = new CtmModelWriter(new MG1Encoder());
             writer.writeModel(out, new Model[]{m});
         }
     }
