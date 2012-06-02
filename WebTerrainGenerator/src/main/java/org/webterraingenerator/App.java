@@ -4,7 +4,7 @@ import java.io.*;
 
 import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
-import darwin.jopenctm.compression.*;
+import darwin.jopenctm.compression.MG2Encoder;
 
 /**
  * Hello world!
