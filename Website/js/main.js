@@ -32,13 +32,14 @@ function init() {
     
     // new THREE.PerspectiveCamera( FOV, viewAspectRatio, zNear, zFar );
     camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 1, 10000);
-    controls = new THREE.TrackballControls(camera);
+
     scene = new THREE.Scene();
 
     camera.position.x = 50;
     camera.position.y = 475;
     camera.position.z = 700;
 
+    controls = new THREE.TrackballControls(camera);
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
     controls.panSpeed = 0.8;
@@ -56,7 +57,7 @@ function init() {
     ];
 
     controls.addEventListener('change', render);
-    
+  
     // add the camera to the scene
     scene.add(camera);
     
