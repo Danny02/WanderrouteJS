@@ -12,7 +12,8 @@
 
     <modules>
         <module>WebTerrainGenerator</module>
-    </modules>
+    <module>SRTMReader</module>
+  </modules>
 
     <issueManagement>
         <url>${project.url}/issues</url>

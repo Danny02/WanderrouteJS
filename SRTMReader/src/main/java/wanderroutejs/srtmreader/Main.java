@@ -2,7 +2,6 @@ package wanderroutejs.srtmreader;
 
 import java.awt.Rectangle;
 import java.io.*;
-import java.util.logging.*;
 import org.apache.commons.cli.*;
 
 import static org.apache.commons.cli.OptionBuilder.withArgName;
