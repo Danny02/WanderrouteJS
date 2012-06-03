@@ -1,6 +1,7 @@
 /*global THREE, vertices */
 var WIDTH = 800, 
     HEIGHT = 600,
+    canvas,
     renderer,
     camera,
     controls,
@@ -20,13 +21,22 @@ function render() {
     renderer.render(scene, camera);
 }
 
+function setSize() {
+    console.log("here");
+    var compStyle = window.getComputedStyle(canvas, null);
+    renderer.setSize(parseInt(compStyle.getPropertyValue("width"), 10), 
+                     parseInt(compStyle.getPropertyValue("height"), 10));
+}
+
 function init() {
+    canvas = document.getElementById("canvas");
     renderer = new THREE.WebGLRenderer({
-        antialias: true
+        antialias: true,
+        canvas : document.getElementById("canvas")
     });
 
-    renderer.setSize(WIDTH, HEIGHT);
-        
+    setSize();
+
     renderer.setClearColorHex(0xEEEEEE, 1.0);
     renderer.clear();	
     
@@ -133,6 +143,11 @@ function init() {
     scene.add(cube);
 
     document.body.appendChild(renderer.domElement);	
+
+    window.addEventListener("resize", function () {
+        setSize();
+        render();
+    });
 
 }
 
