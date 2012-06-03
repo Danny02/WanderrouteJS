@@ -15,9 +15,19 @@ public class Main {
 		File file = null;
 		SRTMReader reader;
 		int precision = 3; // ca 100m
+		String type = "";
+		String variableName = "";
 		
 		if (args.length > 0) {
 			filePath = args[0];
+		}
+		
+		if (args.length > 1) {
+			type = args[1];
+		}
+		
+		if (args.length > 2) {
+			variableName = args[2];
 		}
 		
 		if (filePath.isEmpty()) {
@@ -37,17 +47,17 @@ public class Main {
 			
 			int[][] heights = reader.getHeightArray();
 			
-			TriangelStripGenerator tsg = new TriangelStripGenerator();
-			tsg.generateMesh(heights,
+			Generator generator = Generator.createGenerator(type);
+			generator.generateMesh(heights,
 					precision,
 					320, 
 					420, 
 					1040, 
 					1140);
-			String json = tsg.toJSON();
+			String json = generator.toJSON(variableName);
 			
 			try{
-				FileWriter writer = new FileWriter(filePath.replaceAll("hgt", "json"));
+				FileWriter writer = new FileWriter(filePath.replaceAll(".hgt", "." + generator.getMeshType() +  ".json"));
 				writer.write(json);
 				writer.close();
 				System.out.println("JSON file created");
