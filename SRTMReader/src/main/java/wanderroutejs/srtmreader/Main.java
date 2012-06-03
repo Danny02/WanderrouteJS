@@ -26,17 +26,27 @@ public class Main
         try {
             heights = reader.parseFile(file);
 
-            Generator generator = Generator.createGenerator(type);
+            String meshType;
+            Generator generator;
+            if("TRIANGLE_STRIP".equals(type))
+            {
+                generator = new TriangleStripGenerator();
+                meshType = type;
+            }else{
+                generator = new TrianglesGenerator();
+                meshType = "TRIANGLES";
+            }
+
             generator.generateMesh(heights,
                                     precision,
                                     terrainBounds.x,
                                     terrainBounds.x,
                                     terrainBounds.x + terrainBounds.width,
                                     terrainBounds.y + terrainBounds.height);
-            String json = generator.toJSON(varName);
+//            String json = generator.toJSON(varName);
 
-            FileWriter writer = new FileWriter(path.replaceAll(".hgt", "." + generator.getMeshType() + ".json"));
-            writer.write(json);
+            FileWriter writer = new FileWriter(path.replaceAll(".hgt", "." + meshType + ".json"));
+//            writer.write(json);
             writer.close();
             System.out.println("JSON file created");
         } catch (IOException ex) {
