@@ -22,10 +22,10 @@ function render() {
 }
 
 function setSize() {
-    console.log("here");
     var compStyle = window.getComputedStyle(canvas, null);
-    renderer.setSize(parseInt(compStyle.getPropertyValue("width"), 10), 
-                     parseInt(compStyle.getPropertyValue("height"), 10));
+    WIDTH = parseInt(compStyle.getPropertyValue("width"), 10);
+    HEIGHT = parseInt(compStyle.getPropertyValue("height"), 10);
+    renderer.setSize(WIDTH, HEIGHT);
 }
 
 function init() {
@@ -45,9 +45,11 @@ function init() {
 
     scene = new THREE.Scene();
 
-    camera.position.x = 50;
-    camera.position.y = 475;
-    camera.position.z = 700;
+    camera.position.x = 0;
+    camera.position.y = 500;
+    camera.position.z = 5000;
+
+    camera.lookAt(new THREE.Vector3([0, 0, 0]));
 
     controls = new THREE.TrackballControls(camera);
     controls.rotateSpeed = 1.0;
@@ -101,9 +103,9 @@ function init() {
     //for (i=0;i<27;i+=3){
     len = vertices.length - 2;
     for (i = 0; i < len; i += 3) {
-        geometry.vertices.push(new THREE.Vector3(vertices[i], 
+        geometry.vertices.push(new THREE.Vector3(vertices[i] * 90, 
                                                  vertices[i + 1], 
-                                                 vertices[i + 2]));
+                                                 vertices[i + 2] * 90));
     }
 
     //console.log('number of vertices ' + geometry.vertices.length);

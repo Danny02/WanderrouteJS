@@ -7,6 +7,7 @@ public class Main {
 
 	/**
 	 * @param args
+	 * <filePath> [<type> <jsonVariableName> <precision>]
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -18,16 +19,20 @@ public class Main {
 		String type = "";
 		String variableName = "";
 		
-		if (args.length > 0) {
+		if (args.length >= 0) {
 			filePath = args[0];
 		}
 		
-		if (args.length > 1) {
+		if (args.length >= 1) {
 			type = args[1];
 		}
 		
-		if (args.length > 2) {
+		if (args.length >= 2) {
 			variableName = args[2];
+		}
+		
+		if (args.length >= 3) {
+			precision = Integer.parseInt(args[3]);
 		}
 		
 		if (filePath.isEmpty()) {
@@ -50,10 +55,10 @@ public class Main {
 			Generator generator = Generator.createGenerator(type);
 			generator.generateMesh(heights,
 					precision,
-					320, 
-					420, 
-					1040, 
-					1140);
+					300, 
+					450, 
+					1020, 
+					1170);
 			String json = generator.toJSON(variableName);
 			
 			try{
