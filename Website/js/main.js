@@ -103,9 +103,9 @@ function init() {
     //for (i=0;i<27;i+=3){
     len = vertices.length - 2;
     for (i = 0; i < len; i += 3) {
-        geometry.vertices.push(new THREE.Vector3(vertices[i] * 90, 
+        geometry.vertices.push(new THREE.Vector3(vertices[i] * 30, 
                                                  vertices[i + 1], 
-                                                 vertices[i + 2] * 90));
+                                                 vertices[i + 2] * 30));
     }
 
     //console.log('number of vertices ' + geometry.vertices.length);
