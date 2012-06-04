@@ -28,8 +28,7 @@ public class Main
 
             String meshType;
             Generator generator;
-            if("TRIANGLE_STRIP".equals(type))
-            {
+            if("TRIANGLE_STRIP".equals(type)){
                 generator = new TriangleStripGenerator();
                 meshType = type;
             }else{
