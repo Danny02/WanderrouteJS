@@ -39,10 +39,10 @@ public class Main
 
             generator.generateMesh(heights,
                                     precision,
-                                    terrainBounds.y,
-                                    terrainBounds.y + terrainBounds.height,
                                     terrainBounds.x,
-                                    terrainBounds.x + terrainBounds.width);
+                                    terrainBounds.x,
+                                    terrainBounds.x + terrainBounds.width,
+                                    terrainBounds.y + terrainBounds.height);
 //            String json = generator.toJSON(varName);
 
             FileWriter writer = new FileWriter(path.replaceAll(".hgt", "." + meshType + ".json"));
