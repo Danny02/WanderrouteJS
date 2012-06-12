@@ -14,9 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.webterraingenerator;
+package wanderroutejs.heighmapgeneration;
 
-import java.awt.Dimension;
+import wanderroutejs.datasources.HeightSource;
 import javax.media.opengl.GL;
 
 import darwin.geometrie.data.*;
@@ -25,6 +25,8 @@ import darwin.geometrie.factorys.grids.*;
 import darwin.geometrie.unpacked.Mesh;
 import darwin.util.math.base.tupel.Tupel2;
 import darwin.util.math.base.vector.Vector2;
+
+import static java.lang.Math.*;
 
 /**
  *
@@ -41,21 +43,17 @@ public class GridHeightmap implements HeightmapGenerator
     }
 
     @Override
-    public Mesh generateVertexData(final ImageSource image)
+    public Mesh generateVertexData(final HeightSource image)
     {
         final Element position = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         VertexBuffer buffer = new VertexBuffer(position, factory.getVertexCount());
-
-        final Dimension kernelSize = image.getImageDimension();
-        kernelSize.height /= factory.getTessfactor();
-        kernelSize.width /= factory.getTessfactor();
 
         factory.fillVBufferPerVertex(buffer, new PerVertexFiller()
         {
             @Override
             public void fill(Vertex vertex, Tupel2 pos)
             {
-                float h = image.getFilteredValue(pos.getX(), pos.getY(), kernelSize);
+                float h = image.getHeightValue(pos.getX(), pos.getY());
                 vertex.setAttribute(position, pos.getX(), pos.getY(), h);
             }
         });

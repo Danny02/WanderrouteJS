@@ -14,30 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.webterraingenerator;
+package wanderroutejs.heighmapgeneration;
 
-import java.io.*;
-
-import darwin.geometrie.io.ModelWriter;
-import darwin.geometrie.unpacked.Model;
+import wanderroutejs.datasources.HeightSource;
+import darwin.geometrie.unpacked.Mesh;
 
 /**
  *
  * @author daniel
  */
-public class PlainJSONModelWriter implements ModelWriter
+public interface HeightmapGenerator
 {
-
-    @Override
-    public void writeModel(OutputStream out, Model[] model) throws IOException
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public String getDefaultFileExtension()
-    {
-        return "json";
-    }
-
+    public Mesh generateVertexData(HeightSource image);
 }

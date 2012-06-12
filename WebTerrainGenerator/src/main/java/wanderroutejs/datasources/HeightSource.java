@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.webterraingenerator;
+package wanderroutejs.datasources;
 
 import java.awt.Dimension;
 
@@ -22,20 +22,8 @@ import java.awt.Dimension;
  *
  * @author daniel
  */
-public class TestImage implements ImageSource
+public interface HeightSource
 {
-
-    @Override
-    public float getFilteredValue(float x, float y, Dimension kernelSize)
-    {
-        return (float) Math.random();
-    }
-
-    @Override
-    public Dimension getImageDimension()
-    {
-        return new Dimension(512, 512);
-    }
-
-
+    public float getHeightValue(float x, float y);
+    public Dimension getDataDimension();
 }
