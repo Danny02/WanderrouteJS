@@ -128,7 +128,6 @@ public class SRTMImageReader extends ImageReader
     public BufferedImage read(int imageIndex, ImageReadParam param) throws IOException
     {
         ImageInputStream stream = getStream();
-        stream.setByteOrder(ByteOrder.LITTLE_ENDIAN);
 
         int gs = getVersion().gridSize;
         BufferedImage image = new BufferedImage(gs, gs, BufferedImage.TYPE_USHORT_GRAY);
@@ -136,8 +135,8 @@ public class SRTMImageReader extends ImageReader
 
         for (int y = 0; y < gs; y++) {
             for (int x = 0; x < gs; x++) {
-                short height = stream.readShort();
-                raster.setDataElements(x, y, new short[]{height});
+                short value = stream.readShort();
+                raster.setDataElements(x, y, new short[]{value});
             }
         }
 
