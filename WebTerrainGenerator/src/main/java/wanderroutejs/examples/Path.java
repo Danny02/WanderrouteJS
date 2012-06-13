@@ -17,7 +17,7 @@ public class Path implements Iterable<LineSegment>
 {
     private final List<ImmutableVector<Vector2>> positions = new ArrayList<>(1 << 10);
 
-    public void addPathElement(ImmutableVector position)
+    public void addPathElement(ImmutableVector<Vector2> position)
     {
         positions.add(position.copy());
     }

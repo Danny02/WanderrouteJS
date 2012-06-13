@@ -19,9 +19,10 @@ package wanderroutejs.examples;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import javax.imageio.*;
-import javax.swing.*;
+import javax.imageio.ImageIO;
 import wanderroutejs.imageprocessing.*;
+
+import darwin.util.math.base.vector.*;
 
 /**
  *
@@ -36,9 +37,6 @@ public class Test
 
         BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
         BufferedImage img2 = img;
-//        new BufferedImage(200, 200, BufferedImage.TYPE_USHORT_GRAY);
-//        Graphics2D g2 = img2.createGraphics();
-//        g2.drawImage(img, 0, 0, 100, 100, null);
 
         BufferedImage normal = new BufferedImage(img2.getWidth(), img2.getHeight(), BufferedImage.TYPE_INT_RGB);
         new NormalGeneratorOp().filter(img2, normal);
@@ -47,7 +45,24 @@ public class Test
         BufferedImageOp op = new RescaleOp(60, 60, null);
         BufferedImage adjustedHeight = op.createCompatibleDestImage(img2, img2.getColorModel());
         op.filter(img2, adjustedHeight);
-        ImageIO.write(adjustedHeight, "png", new File("test.png"));
+        ImageIO.write(normal, "png", new File("test.png"));
+
+//todo buggy
+//        Path p = new Path();
+//        p.addPathElement(new Vector2(200, 200));
+//        p.addPathElement(new Vector2(600, 800));
+//        p.addPathElement(new Vector2(800, 200));
+//        p.addPathElement(new Vector2(400, 400));
+//
+//        Graphics2D g = normal.createGraphics();
+//        g.setColor(Color.YELLOW);
+//        Polygon poly = new Polygon();
+//        for (ImmutableVector<Vector2> v : p.buildExtrudedPolygon(10)) {
+//            System.out.println((int) v.getCoords()[0]);
+//            poly.addPoint((int) v.getCoords()[0], (int) v.getCoords()[1]);
+//        }
+//        g.fillPolygon(poly);
+
 
         ImageFrame frame = new ImageFrame(1200, 600);
         frame.addImage(normal);

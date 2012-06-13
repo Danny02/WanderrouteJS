@@ -79,9 +79,9 @@ public class GridWithNormalGenerator implements HeightmapGenerator
 
     private float[] getNormalValue(float x, float y)
     {
-        if (x < 0 || x > 1 || y < 0 || y > 1) {
-            System.err.println("A requested texturecoordinate is out of range! It got clamped. x:" + x + " y:" + y);
-        }
+//        if (x < 0 || x > 1 || y < 0 || y > 1) {
+//            System.err.println("A requested texturecoordinate is out of range! It got clamped. x:" + x + " y:" + y);
+//        }
         x = max(0, min(x, 1));
         y = max(0, min(y, 1));
 

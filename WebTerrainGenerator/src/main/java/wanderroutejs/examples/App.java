@@ -24,7 +24,8 @@ public class App
 //        HeightmapGenerator generator = new GridHeightmap(tessFactor);
 //        HeightSource source = new HeightMapSource(img, tessFactor, 1f / 6000);
 //        Mesh mesh = generator.generateVertexData(source);
-        Mesh mesh = new GridWithNormalGenerator(tessFactor, img).generateVertexData(new HeightMapSource(img, tessFactor, 1f / 6000));
+        img = ImageUtil2.getScaledImage(img, tessFactor, tessFactor, false);
+        Mesh mesh = new GridWithNormalGenerator(tessFactor, img).generateVertexData(new HeightMapSource(img, 1f / 4000));
         Model m = new Model(mesh, null);
 
         try (OutputStream out = new FileOutputStream("test2.ctm");) {

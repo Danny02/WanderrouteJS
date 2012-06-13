@@ -18,7 +18,7 @@ package wanderroutejs.datasources;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import wanderroutejs.imageprocessing.ImageUtil2;
+import wanderroutejs.imageprocessing.*;
 
 import static java.lang.Math.*;
 
@@ -33,21 +33,22 @@ public class HeightMapSource implements HeightSource
 
     public HeightMapSource(BufferedImage image, float scaleFactor)
     {
-        heightMap = image;
+        heightMap = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        new GaussBlurOp(9).filter(image, heightMap);
         this.scaleFactor = scaleFactor;
     }
 
     public HeightMapSource(BufferedImage image, int size, float scaleFactor)
     {
-        this(ImageUtil2.getScaledImage(image, size, size, true), scaleFactor);
+        this(ImageUtil2.getScaledImage(image, size, size, false), scaleFactor);
     }
 
     @Override
     public float getHeightValue(float x, float y)
     {
-        if (x < 0 || x > 1 || y < 0 || y > 1) {
-            System.err.println("A requested texturecoordinate is out of range! It got clamped. x:" + x + " y:" + y);
-        }
+//        if (x < 0 || x > 1 || y < 0 || y > 1) {
+//            System.err.println("A requested texturecoordinate is out of range! It got clamped. x:" + x + " y:" + y);
+//        }
         x = max(0, min(x, 1));
         y = max(0, min(y, 1));
 
