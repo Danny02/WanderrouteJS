@@ -9,6 +9,7 @@ TODO bis Dienstag 19.06
 Sven
 - ctm in three js laden
 - methode irgendnen pfad und anklicken
+- framebufferobjects fbo / textures 
 
 Daniel
 - beispiel datein für sven
