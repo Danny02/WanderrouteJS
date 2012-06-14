@@ -27,6 +27,7 @@
             <plugin>
                 <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
+                <version>2.0.5</version>
                 <executions>
                     <execution>
                         <id>process</id>
@@ -45,6 +46,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -56,6 +58,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -91,6 +94,16 @@
         <dependency>
             <groupId>org.darwin</groupId>
             <artifactId>Geometrie</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.darwin</groupId>
+            <artifactId>Renderer</artifactId>
+            <version>2.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.darwin</groupId>
+            <artifactId>Core</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
