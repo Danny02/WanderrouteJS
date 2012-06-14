@@ -16,6 +16,7 @@
  */
 package wanderroutejs.examples;
 
+import wanderroutejs.Path;
 import java.awt.*;
 import java.awt.image.*;
 import javax.swing.*;
