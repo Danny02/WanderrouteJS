@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import javax.media.opengl.GLAutoDrawable;
 
 import darwin.renderer.*;
-import darwin.renderer.util.memory.MemoryInfo;
 import darwin.resourcehandling.resmanagment.ResourcesLoader;
 
 /**
@@ -30,9 +29,9 @@ import darwin.resourcehandling.resmanagment.ResourcesLoader;
 public class TestScene extends BasicScene
 {
     @Inject
-    public TestScene(GraphicContext gc, ResourcesLoader loader, MemoryInfo info)
+    public TestScene(GraphicContext gc, ResourcesLoader loader)
     {
-        super(gc, loader, info);
+        super(gc, loader);
     }
 
     @Override
