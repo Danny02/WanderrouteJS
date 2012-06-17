@@ -29,9 +29,8 @@ import darwin.geometrie.unpacked.*;
 import darwin.renderer.BasicScene;
 import darwin.renderer.dependencies.RendererModul;
 import darwin.renderer.geometrie.packed.RenderModel.RenderModelFactory;
-import darwin.renderer.geometrie.packed.Shaded;
+import darwin.renderer.geometrie.packed.*;
 import darwin.renderer.shader.Shader;
-import darwin.renderer.shader.uniform.FloatSetter;
 import darwin.resourcehandling.resmanagment.ResourcesLoader;
 import darwin.util.math.base.vector.Vector3;
 
@@ -42,43 +41,52 @@ import darwin.util.math.base.vector.Vector3;
 public class RenderTest
 {
     private final ClientWindow window;
+    private final AsyncIni ini;
 
     @Inject
-    public RenderTest(Client client, RenderModelFactory rm, BasicScene scene,
-                      ResourcesLoader loader)
+    public RenderTest(Client client, final RenderModelFactory rm,
+                      final BasicScene scene, final ResourcesLoader loader)
     {
         window = new ClientWindow(800, 600, false, client);
 
         client.addGLEventListener(scene);
 
-        ViewModel view  = new OrbitCam(new Vector3(), 10);
+        ViewModel view = new OrbitCam(new Vector3(), 10);
         scene.setViewMatrix(view.getView());
 
         InputController controller = new InputController(view, null, null);
         client.addMouseListener(controller);
 
-        try {
-            BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
+        ini = new AsyncIni()
+        {
+            @Override
+            public void ini()
+            {
 
-            int tessFactor = 100;
-            img = ImageUtil2.getScaledImage(img, tessFactor, tessFactor, false);
-            Mesh mesh = new GridWithNormalGenerator(tessFactor, img).generateVertexData(new HeightMapSource(img, 1f / 4000));
-            Model m = new Model(mesh, null);
+                try {
+                    BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
 
-            Shader s = loader.getShader("terrain");
-            s.addUSetter(new FloatSetter(s.getUniform(null), 2));
+                    int tessFactor = 100;
+                    img = ImageUtil2.getScaledImage(img, tessFactor, tessFactor, false);
+                    Mesh mesh = new GridWithNormalGenerator(tessFactor, img).generateVertexData(new HeightMapSource(img, 1f / 4000));
+                    Model m = new Model(mesh, null);
 
-            Shaded obj = rm.create(m, s);
+                    Shader s = loader.getShader("simpleLambert", false);
 
-            scene.addSceneObject(obj);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+                    Shaded obj = rm.create(m, s);
+
+                    scene.addSceneObject(obj);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
     }
 
     public void start() throws InstantiationException
     {
         window.startUp();
+        ini.ini();
     }
 
     public static void main(String[] args) throws InstantiationException
