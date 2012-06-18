@@ -1,0 +1,16 @@
+allotments
+basin
+cemetery
+commercial
+construction
+farmland
+farmyard
+forest
+grass
+industrial
+landfill
+meadow
+quarry
+residential
+retail
+village_green

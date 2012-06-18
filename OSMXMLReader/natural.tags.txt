@@ -1,0 +1,8 @@
+cave_entrance
+cliff
+geotop
+rock
+scrub
+water
+wetland
+wood
