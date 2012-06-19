@@ -63,7 +63,7 @@ public class PlainJSONModelWriter implements ModelWriter {
                         builder.append(",");
                     }
                 }
-                builder.append("];");
+                builder.append("],");
             }
             builder.append("];\n");
         }

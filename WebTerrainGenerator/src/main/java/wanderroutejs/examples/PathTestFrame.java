@@ -16,33 +16,24 @@
  */
 package wanderroutejs.examples;
 
-import darwin.geometrie.io.ModelWriter;
-import darwin.geometrie.unpacked.Model;
-import darwin.util.math.base.vector.*;
-import darwin.util.math.composits.LineSegment;
-import darwin.util.math.composits.Path;
-import de.alarie.osmxmlreader.OSMFileParser;
-import de.alarie.osmxmlreader.OSMWayObject;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.HeadlessException;
+import de.alarie.osmxmlreader.*;
+import java.awt.*;
 import java.awt.image.*;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.*;
+import java.util.*;
 import java.util.List;
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import wanderroutejs.PathTraingulator;
-import wanderroutejs.datasources.HeightMapSource;
-import wanderroutejs.datasources.HeightSource;
+import wanderroutejs.datasources.*;
 import wanderroutejs.imageprocessing.ImageUtil2;
 import wanderroutejs.io.PlainJSONModelWriter;
+
+import darwin.geometrie.io.ModelWriter;
+import darwin.geometrie.unpacked.Model;
+import darwin.util.math.base.vector.Vector2;
+import darwin.util.math.composits.*;
 
 /**
  *
@@ -89,7 +80,7 @@ public class PathTestFrame extends JFrame {
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
         BufferedImage imageOrg = ImageUtil2.loadImage("/examples/N50E011.hgt");
-        
+
         List<Path<Vector2>> paths = new ArrayList<>(10000);
 
         OSMFileParser parser = new OSMFileParser();

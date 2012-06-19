@@ -18,7 +18,7 @@ public class GenerationTest
 {
     public static void main(String[] args) throws IOException
     {
-        BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
+        BufferedImage img = ImageUtil2.loadImage("/examples/N50E011.hgt");
 
         int tessFactor = 100;
 //        HeightmapGenerator generator = new GridHeightmap(tessFactor);

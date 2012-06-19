@@ -19,36 +19,32 @@ import java.util.ListIterator;
  *
  * @author simonschmidt
  */
-public class OSMTrackReader {
-
+public class OSMTrackReader
+{
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         // TODO code application logic here
 
         final List points = GpxFileDataAccess.getPoints(new File("./track.gpx"));
 
         final Trip trip = Trip.makeTrip(1,
-                new TrackSegment(points, TrackSegment.caminarType.undef));
+                                        new TrackSegment(points, TrackSegment.caminarType.undef));
 
-        final List allSegments = trip.getSegments();
+//        final List<TrackSegment> allSegments = trip.getSegments();
 
         final List<TrackPoint> allPoints = trip.getPoints();
 
-        ListIterator<TrackPoint> i;
-        i = allPoints.listIterator();
-
-
         // TODO: Path erstellen und dann folgende Vektoren in den Pfad aufnehmen
-
-        while (i.hasNext()) {
-            TrackPoint p = (TrackPoint) i.next();
+        Path<Vector3> path  = new Path<>();
+        for (TrackPoint p : allPoints) {
             System.out.printf("%f, %f, %d \n", p.getLat(), p.getLon(), p.getElevation());
-            Vector3 vec = new Vector3(
-                    (float) p.getLat(),
+            path.addPathElement(new Vector3(
                     (float) p.getLon(),
-                    p.getElevation() / 100f);
+                    (float) p.getLon(),
+                    p.getElevation() / 100f));
 
         }
     }
