@@ -4,52 +4,43 @@
  */
 package de.alarie.osmxmlreader;
 
-import darwin.util.math.base.vector.Vector3;
-import org.xml.sax.Attributes;
+import darwin.util.math.base.vector.Vector2;
 
 /**
  *
  * @author simonschmidt
  */
-class OSMNodeObject implements OSMObject{
-	long id;
-	private float lat;
-	private float lon;
-	private Vector3 vec;
-	
-	public OSMNodeObject (long id, float lat, float lon) {
-		this.id = id;
-		this.lat = lat;
-		this.lon = lon;
-		this.vec = new Vector3(lat, lon, 0f);
-	}
-	
-	public Vector3 getVector() {
-		return vec;
-	}
-	
-	@Override
-	public String getAttribute(String key) {
-		return null;
-	};
-	
-	@Override
-	public void addAttribute(String key, String value) {
-	}
-	
-	@Override
-	public void addNode(OSMNodeObject node) {
-	}
-	
-	@Override
-	public String toString () {
-		return "{" + id + ": " + lat + ", " + lon + "}";
-	}
-	
-	@Override
-	public String getTagName () {
-		return "node";
-	}
-	
-	
+public class OSMNodeObject implements OSMObject {
+
+    long id;
+    private float lat;
+    private float lon;
+
+    public OSMNodeObject(long id, float lat, float lon) {
+        this.id = id;
+        this.lat = lat;
+        this.lon = lon;
+    }
+
+    public Vector2 getVector() {
+        return new Vector2(lon, lat);
+    }
+
+    public float getLongitude() {
+        return lon;
+    }
+
+    public float getLatitude() {
+        return lat;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + id + ": " + lat + ", " + lon + "}";
+    }
+
+    @Override
+    public String getTagName() {
+        return "node";
+    }
 }

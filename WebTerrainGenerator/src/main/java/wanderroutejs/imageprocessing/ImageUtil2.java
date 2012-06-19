@@ -20,17 +20,18 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import javax.imageio.*;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  *
  * @author daniel
  */
-public class ImageUtil2
-{
-    public static BufferedImage loadImage(String fileName) throws IOException
-    {
+public class ImageUtil2 {
+
+    public static BufferedImage loadImage(String fileName) throws IOException {
         int suffixPos = fileName.lastIndexOf('.');
         if (suffixPos == -1 || suffixPos == fileName.length() - 1) {
             throw new IOException("Could not extract a file suffix from the following filepath: " + fileName);
@@ -39,20 +40,22 @@ public class ImageUtil2
         return loadImage(fileName, fileName.substring(suffixPos + 1));
     }
 
-    public static BufferedImage loadImage(String fileName, String fileSuffix) throws IOException
-    {
+    public static BufferedImage loadImage(String fileName, String fileSuffix) throws IOException {
         for (Iterator<ImageReader> it = ImageIO.getImageReadersBySuffix(fileSuffix); it.hasNext();) {
             ImageReader reader = it.next();
-
-            reader.setInput(ImageIO.createImageInputStream(
-                    ClassLoader.getSystemResourceAsStream(fileName)));
-            return reader.read(0);
+            InputStream in = ImageUtil2.class.getResourceAsStream(fileName);
+            if (in == null) {
+                throw new IOException("Could not find file: " + fileName);
+            }
+            try (ImageInputStream ii = ImageIO.createImageInputStream(in);) {
+                reader.setInput(ii);
+                return reader.read(0);
+            }
         }
         throw new IOException("No ImageReader found for the file: " + fileName);
     }
 
-    public static BufferedImage filter(BufferedImage image, BufferedImageOp op)
-    {
+    public static BufferedImage filter(BufferedImage image, BufferedImageOp op) {
         BufferedImage result = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         op.filter(image, result);
         return result;
@@ -60,10 +63,9 @@ public class ImageUtil2
 
     //TODO sehr komische ergebnisse bei Bilder vom Type USHORT_GRAY (bilder haben nur noch 3-4 graustufen)
     public static BufferedImage getScaledImage(BufferedImage image,
-                                               int targetWidth,
-                                               int targetHeight,
-                                               boolean highQuality)
-    {
+            int targetWidth,
+            int targetHeight,
+            boolean highQuality) {
         int accWidth, accHeight;
         if (highQuality) {
             accHeight = image.getHeight();
@@ -85,10 +87,10 @@ public class ImageUtil2
 
             if (highQuality) {
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                                    RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             } else {
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+                        RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
             }
             g2.drawImage(result, 0, 0, accWidth, accHeight, null);
 
