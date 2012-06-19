@@ -130,5 +130,10 @@
             <artifactId>OSMXMLReader</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.fmt.gps</groupId>
+            <artifactId>GPS</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 </project>
