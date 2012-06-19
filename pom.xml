@@ -13,6 +13,7 @@
     <modules>
         <module>WebTerrainGenerator</module>
         <module>OSMXMLReader</module>
+        <module>gpsanalysis-code</module>
     </modules>
 
     <issueManagement>
