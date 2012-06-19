@@ -5,12 +5,14 @@ var container, stats;
 
 var camera, scene, renderer;
 
-var mesh, zmesh, geometry;
+var uniforms, mesh, zmesh, geometry;
 
 var mouseX = 0, mouseY = 0;
 
 var windowHalfX = window.innerWidth / 2;
 var windowHalfY = window.innerHeight / 2;
+
+var clock = new THREE.Clock();
 
 document.addEventListener('mousemove', onDocumentMouseMove, false);
 
@@ -75,6 +77,12 @@ function init() {
 
 	window.addEventListener( 'resize', onWindowResize, false );
 
+	uniforms = {
+		normal: { type: "t", value: 0, texture: THREE.ImageUtils.loadTexture( "textures/normal/map.png" ) },
+		time: { type: "f", value: 1.0 }
+	};
+
+
 	// LOADER
 
 	var c = 0, s = Date.now();
@@ -92,8 +100,8 @@ function init() {
 
 	}
 
-	var useWorker = true;
-	var useBuffers = true;
+	var useWorker = false;
+	var useBuffers = false;
 
 	var loader = new THREE.CTMLoader( renderer.context );
 
@@ -115,10 +123,7 @@ function init() {
 
 	}, useWorker, useBuffers );*/
 
-	loader.load( "models/ctm/LeePerry.ctm",  function( geometry ) {
-
-		
-
+/*	loader.load( "models/ctm/LeePerry.ctm",  function( geometry ) {
 
 		// material parameters
 		var ambient = 0x111111, diffuse = 0xbbbbbb, specular = 0x060606, shininess = 35;
@@ -159,14 +164,14 @@ function init() {
 		callbackModel( geometry, 1300, material2, 200, 50, 0, 0, 0 );
 		checkTime();
 
-	}, useWorker, useBuffers );
+	}, useWorker, useBuffers );*/
 
-	loader.load( "models/ctm/map.ctm", function( geometry ){
+	loader.load( "models/ctm/map1.ctm", function( geometry ){
 		//geometry.computeVertexNormals();
 
 		//Normal map in material
 		// material parameters normal map
-
+/*
 		var shader = THREE.ShaderUtils.lib[ "normal" ];
         var uniforms = THREE.UniformsUtils.clone( shader.uniforms );
 
@@ -175,18 +180,27 @@ function init() {
         uniforms[ "enableDiffuse" ].value = false;
         uniforms[ "enableSpecular" ].value = false;
 
-        //geometry.computeTangents();
+        geometry.computeTangents();
 
         materialNormal = new THREE.ShaderMaterial( {
             uniforms: uniforms,
             vertexShader: shader.vertexShader,
             fragmentShader: shader.fragmentShader,
             lights: true
-        } );
+        } );*/
+
+        //custom shaders
+
+	    var shaderMaterial = new THREE.ShaderMaterial({
+	    	uniforms: uniforms,
+	        vertexShader:   $('#customVertexshader').text(),
+	        fragmentShader: $('#customFragmentshader').text()
+	    });
+
 
 		var material = new THREE.MeshLambertMaterial( { color: 0xffffff, envMaps: reflectionCube, combine: THREE.MixOperation, reflectivity: 0.3 } );
 
-		callbackModel( geometry, 200, material, -100, 0, 0, 0, 0 );
+		callbackModel( geometry, 200, shaderMaterial, -100, 0, 0, -70, 0 );
 		checkTime();
 	}, useWorker, useBuffers );
 
@@ -242,6 +256,10 @@ function render() {
 
 	camera.position.x += ( mouseX - camera.position.x ) * .05;
 	camera.position.y += ( - mouseY - camera.position.y ) * .05;
+
+	var delta = clock.getDelta();
+	uniforms.time.value += delta;
+	//console.log(uniforms.time.value)
 
 	camera.lookAt( scene.position );
 
