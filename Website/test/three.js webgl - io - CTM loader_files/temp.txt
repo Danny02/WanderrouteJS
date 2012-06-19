@@ -1,0 +1,21 @@
+[JSHint file: C:\xampp\htdocs\test\three.js webgl - io - CTM loader_files\main.js]
+  12 Errors:
+     26,37: ['normal'] is better written in dot notation.
+     29,11: ['enableAO'] is better written in dot notation.
+     30,11: ['enableDiffuse'] is better written in dot notation.
+     31,11: ['enableSpecular'] is better written in dot notation.
+     32,11: ['enableReflection'] is better written in dot notation.
+     34,11: ['tNormal'] is better written in dot notation.
+     35,11: ['tAO'] is better written in dot notation.
+     37,11: ['tDisplacement'] is better written in dot notation.
+     38,11: ['uDisplacementBias'] is better written in dot notation.
+     39,11: ['uDisplacementScale'] is better written in dot notation.
+     39,59: Unbegun comment.
+     39,59: Cannot set property 'uniforms' of undefined
+  6 Warnings:
+ 1,2,12,13,1: 'window' is an implied global variable.
+      15,1: 'document' is an implied global variable.
+      15,1: 'onDocumentMouseMove' is an implied global variable.
+      17,1: 'init' is an implied global variable.
+      18,1: 'animate' is an implied global variable.
+ 26,27,34,35,37,1: 'THREE' is an implied global variable.
