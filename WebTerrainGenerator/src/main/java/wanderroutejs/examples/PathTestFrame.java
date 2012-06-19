@@ -16,6 +16,8 @@
  */
 package wanderroutejs.examples;
 
+import darwin.geometrie.io.ModelWriter;
+import darwin.geometrie.unpacked.Model;
 import darwin.util.math.base.vector.*;
 import darwin.util.math.composits.LineSegment;
 import darwin.util.math.composits.Path;
@@ -26,15 +28,21 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.HeadlessException;
 import java.awt.image.*;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
+import wanderroutejs.PathTraingulator;
+import wanderroutejs.datasources.HeightMapSource;
+import wanderroutejs.datasources.HeightSource;
 import wanderroutejs.imageprocessing.ImageUtil2;
+import wanderroutejs.io.PlainJSONModelWriter;
 
 /**
  *
@@ -44,8 +52,7 @@ public class PathTestFrame extends JFrame {
 
     private final BufferedImage image;
 
-    public PathTestFrame() throws HeadlessException, IOException {
-        BufferedImage imageOrg = ImageUtil2.loadImage("/examples/N50E011.hgt");
+    public PathTestFrame(BufferedImage imageOrg) throws HeadlessException, IOException {
         image = new BufferedImage(imageOrg.getWidth(), imageOrg.getHeight(), imageOrg.getType());
         new RescaleOp(60, 60, null).filter(imageOrg, image);
 
@@ -62,16 +69,6 @@ public class PathTestFrame extends JFrame {
 
     public void drawPath(Path<Vector2> path) {
         Graphics2D g = (Graphics2D) image.getGraphics();
-
-//        g.setColor(Color.BLUE);
-
-//        PathTraingulator tria = new PathTraingulator();
-//        Polygon p = new Polygon();
-//        for (ImmutableVector<Vector2> v : tria.buildExtrudedPolygon(path, 5)) {
-//            float[] c = v.getCoords();
-//            p.addPoint((int) c[0], (int) c[1]);
-//        }
-//        g.fillPolygon(p);
 
         g.setColor(Color.RED);
         Vector2 imgDim = new Vector2(image.getWidth(), image.getHeight());
@@ -91,6 +88,8 @@ public class PathTestFrame extends JFrame {
     }
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
+        BufferedImage imageOrg = ImageUtil2.loadImage("/examples/N50E011.hgt");
+        
         List<Path<Vector2>> paths = new ArrayList<>(10000);
 
         OSMFileParser parser = new OSMFileParser();
@@ -110,11 +109,24 @@ public class PathTestFrame extends JFrame {
         }
 
         System.out.println("start drawing..");
-        PathTestFrame frame = new PathTestFrame();
+        PathTestFrame frame = new PathTestFrame(imageOrg);
         for (Path<Vector2> p : paths) {
             frame.drawPath(p);
         }
         frame.repaint();
         System.out.println("drawing finished!");
+
+        PathTraingulator tria = new PathTraingulator();
+        HeightSource source = new HeightMapSource(imageOrg, 1f / 6000);
+
+        System.out.println("start exporting mesh..");
+        ModelWriter writer = new PlainJSONModelWriter();
+        try (OutputStream out = new FileOutputStream("test.json")) {
+            for (Path<Vector2> p : paths) {
+                Model[] models = new Model[]{new Model(tria.buildPathMesh(p, source), null)};
+                writer.writeModel(out, models);
+            }
+        }
+        System.out.println("exporting finished!");
     }
 }

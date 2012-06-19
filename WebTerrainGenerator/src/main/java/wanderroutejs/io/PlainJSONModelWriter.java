@@ -26,11 +26,10 @@ import darwin.geometrie.unpacked.*;
  *
  * @author daniel
  */
-public class PlainJSONModelWriter implements ModelWriter
-{
+public class PlainJSONModelWriter implements ModelWriter {
+
     @Override
-    public void writeModel(OutputStream out, Model[] model) throws IOException
-    {
+    public void writeModel(OutputStream out, Model[] model) throws IOException {
         if (model.length != 1) {
             throw new IllegalArgumentException("Can only export a single Model!");
         }
@@ -38,11 +37,8 @@ public class PlainJSONModelWriter implements ModelWriter
 
         Mesh m = model[0].getMesh();
         int[] indice = m.getIndicies();
-
-        builder.append("var index = ");
-        if (indice == null || indice.length == 0) {
-            builder.append("[];");
-        } else {
+        if (indice != null) {
+            builder.append("var index = ");
             builder.append("[");
             for (int i = 0; i < indice.length; i++) {
                 builder.append(indice[i]);
@@ -67,7 +63,7 @@ public class PlainJSONModelWriter implements ModelWriter
                         builder.append(",");
                     }
                 }
-            builder.append("];");
+                builder.append("];");
             }
             builder.append("];\n");
         }
@@ -76,8 +72,7 @@ public class PlainJSONModelWriter implements ModelWriter
     }
 
     @Override
-    public String getDefaultFileExtension()
-    {
+    public String getDefaultFileExtension() {
         return "json";
     }
 }
