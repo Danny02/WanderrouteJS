@@ -59,7 +59,8 @@ public class GridWithNormalGenerator implements HeightmapGenerator
     {
         final Element position = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         final Element normalElement = new Element(new GenericVector(DataType.FLOAT, 3), "Normal");
-        VertexBuffer buffer = new VertexBuffer(new DataLayout(position, normalElement), factory.getVertexCount());
+        final Element texcoord = new Element(new GenericVector(DataType.FLOAT, 2), "TexCoord");
+        VertexBuffer buffer = new VertexBuffer(new DataLayout(position, texcoord, normalElement), factory.getVertexCount());
 
         factory.fillVBufferPerVertex(buffer, new PerVertexFiller()
         {
@@ -68,6 +69,7 @@ public class GridWithNormalGenerator implements HeightmapGenerator
             {
                 float h = source.getHeightValue(pos.getX(), pos.getY());
                 vertex.setAttribute(position, pos.getX(), pos.getY(), h);
+                vertex.setAttribute(texcoord, pos.getX(), pos.getY());
                 float[] n = getNormalValue(pos.getX(), pos.getY());
                 vertex.setAttribute(normalElement, n[0], n[1], n[2]);
             }
