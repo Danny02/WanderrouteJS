@@ -18,22 +18,50 @@
  */
 package wanderroutejs;
 
-import darwin.util.math.composits.Path;
+import darwin.geometrie.data.DataType;
+import darwin.geometrie.data.Element;
+import darwin.geometrie.data.GenericVector;
+import darwin.geometrie.data.Vertex;
+import darwin.geometrie.data.VertexBuffer;
+import darwin.geometrie.unpacked.Mesh;
 import darwin.util.math.base.Line;
-import darwin.util.math.composits.LineSegment;
 import darwin.util.math.base.vector.ImmutableVector;
 import darwin.util.math.base.vector.Vector;
+import darwin.util.math.base.vector.Vector2;
 import darwin.util.math.base.vector.Vector3;
+import darwin.util.math.composits.LineSegment;
+import darwin.util.math.composits.Path;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
+import javax.media.opengl.GL;
+import wanderroutejs.datasources.HeightSource;
 
 /**
  *
  * @author some
  */
 public class PathTraingulator {
+
+    public Mesh buildPathMesh(Path<Vector2> path, HeightSource height) {
+        Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
+        VertexBuffer vb = new VertexBuffer(pos, path.size());
+        vb.fullyInitialize();
+
+        Iterator<ImmutableVector<Vector2>> iter = path.getVectorIterator();
+        for (Vertex v : vb) {
+            float[] vec = iter.next().getCoords();
+            v.setAttribute(pos, vec[0], vec[1], height.getHeightValue(vec[0], vec[1]));
+        }
+        return new Mesh(null, vb, GL.GL_LINE_STRIP);
+    }
+
+    public <E extends Vector<E>> Mesh buildExtrudedPrisma(Path<E> path, float extrude, float height) {
+        Deque<ImmutableVector<E>> poly = new LinkedList<>(buildExtrudedPolygon(path, extrude));
+        Mesh m = new Mesh(null, null, GL.GL_TRIANGLES);
+        return m;
+    }
 
     public <E extends Vector<E>> Collection<ImmutableVector<E>> buildExtrudedPolygon(Path<E> path, float extrude) {
         if (path.size() < 2) {
