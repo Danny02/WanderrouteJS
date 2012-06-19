@@ -16,43 +16,38 @@
  */
 package wanderroutejs.examples;
 
-import wanderroutejs.Path;
-import java.awt.*;
-import java.awt.image.*;
-import javax.swing.*;
-
-import darwin.util.math.base.LineSegment;
 import darwin.util.math.base.vector.*;
+import darwin.util.math.composits.LineSegment;
+import darwin.util.math.composits.Path;
+import de.alarie.osmxmlreader.OSMFileParser;
+import de.alarie.osmxmlreader.OSMWayObject;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.HeadlessException;
+import java.awt.image.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.swing.*;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
+import wanderroutejs.imageprocessing.ImageUtil2;
 
 /**
  *
  * @author daniel
  */
-public class PathTestFrame extends JFrame
-{
-    public PathTestFrame(Path path) throws HeadlessException
-    {
-        BufferedImage image = new BufferedImage(512, 512, BufferedImage.TYPE_USHORT_GRAY);
-        Graphics2D g = (Graphics2D) image.getGraphics();
+public class PathTestFrame extends JFrame {
 
-        g.setColor(Color.BLUE);
+    private final BufferedImage image;
 
-        Polygon p = new Polygon();
-        for (ImmutableVector<Vector2> v : path.buildExtrudedPolygon(30)) {
-            float[] c = v.getCoords();
-            p.addPoint((int) c[0], (int) c[1]);
-        }
-        g.fillPolygon(p);
-
-        g.setColor(Color.RED);
-
-        for (LineSegment ls : path) {
-            float[] start = ls.getStart().getCoords();
-            float[] end = ls.getEnd().getCoords();
-
-            g.drawLine((int) start[0], (int) start[1],
-                       (int) end[0], (int) end[1]);
-        }
+    public PathTestFrame() throws HeadlessException, IOException {
+        BufferedImage imageOrg = ImageUtil2.loadImage("/examples/N50E011.hgt");
+        image = new BufferedImage(imageOrg.getWidth(), imageOrg.getHeight(), imageOrg.getType());
+        new RescaleOp(60, 60, null).filter(imageOrg, image);
 
         JLabel label = new JLabel(new ImageIcon(image));
         getContentPane().add(label);
@@ -65,33 +60,61 @@ public class PathTestFrame extends JFrame
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void boxBlur(WritableRaster raster, int kernel)
-    {
+    public void drawPath(Path<Vector2> path) {
+        Graphics2D g = (Graphics2D) image.getGraphics();
 
-        int[] tmp = new int[1];
-        int[][] data = new int[raster.getWidth()][raster.getHeight()];
+//        g.setColor(Color.BLUE);
 
-        float divisor = 1f / (4 * kernel * kernel + 4 * kernel + 1);
-        for (int x = kernel; x < data.length - kernel; x++) {
-            for (int y = kernel; y < data[0].length - kernel; y++) {
+//        PathTraingulator tria = new PathTraingulator();
+//        Polygon p = new Polygon();
+//        for (ImmutableVector<Vector2> v : tria.buildExtrudedPolygon(path, 5)) {
+//            float[] c = v.getCoords();
+//            p.addPoint((int) c[0], (int) c[1]);
+//        }
+//        g.fillPolygon(p);
 
-                int sum = 0;
-                for (int kx = -kernel; kx <= kernel; kx++) {
-                    for (int ky = -kernel; ky <= kernel; ky++) {
-                        raster.getPixel(x + kx, y + ky, tmp);
-                        sum += tmp[0];
-                    }
+        g.setColor(Color.RED);
+        Vector2 imgDim = new Vector2(image.getWidth(), image.getHeight());
+        for (LineSegment<Vector2> ls : path) {
+            Vector2 s = ls.getStart().clone();
+            s.sub(new Vector2(50, 11)).mul(imgDim);
+
+            Vector2 e = ls.getEnd().clone();
+            e.sub(new Vector2(50, 11)).mul(imgDim);
+            float[] start = s.getCoords();
+            float[] end = e.getCoords();
+
+            g.drawLine((int) start[0], (int) start[1],
+                    (int) end[0], (int) end[1]);
+        }
+
+    }
+
+    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
+        List<Path<Vector2>> paths = new ArrayList<>(10000);
+
+        OSMFileParser parser = new OSMFileParser();
+        String baseName = "/examples/roadsN50E11.osm.part";
+        for (int x = 0; x < 4; x++) {
+            for (int y = 0; y < 4; y++) {
+                InputStream input = PathTestFrame.class.getResourceAsStream(baseName + x + y);
+                if (input == null) {
+                    throw new IOException("Could not find: " + baseName + x + y);
                 }
-                data[x][y] = (int) (sum * divisor);
+
+                Collection<OSMWayObject> objects = parser.parse(input);
+                for (OSMWayObject o : objects) {
+                    paths.add(o.getPath());
+                }
             }
         }
 
-        for (int x = 0; x < data.length; x++) {
-            for (int y = 0; y < data[0].length; y++) {
-                tmp[0] = data[x][y];
-                raster.setPixel(x, y, tmp);
-            }
+        System.out.println("start drawing..");
+        PathTestFrame frame = new PathTestFrame();
+        for (Path<Vector2> p : paths) {
+            frame.drawPath(p);
         }
-
+        frame.repaint();
+        System.out.println("drawing finished!");
     }
 }
