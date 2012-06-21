@@ -40,6 +40,7 @@ import static java.lang.Math.*;
  *
  * @author daniel
  */
+@Deprecated
 public class GridWithNormalGenerator implements HeightmapGenerator
 {
     private final CellFactory factory;

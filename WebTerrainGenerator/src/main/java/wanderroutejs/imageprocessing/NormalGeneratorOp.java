@@ -41,7 +41,6 @@ public class NormalGeneratorOp implements BufferedImageOp
     @Override
     public BufferedImage filter(BufferedImage src, BufferedImage dest)
     {
-        DataBuffer buffer = src.getRaster().getDataBuffer();
         int[] tmp = new int[4];
         for (int x = 0; x < src.getWidth(); ++x) {
             for (int y = 0; y < src.getHeight(); y++) {

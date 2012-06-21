@@ -16,8 +16,8 @@
  */
 package wanderroutejs.heighmapgeneration;
 
-import wanderroutejs.datasources.HeightSource;
 import javax.media.opengl.GL;
+import wanderroutejs.datasources.HeightSource;
 
 import darwin.geometrie.data.*;
 import darwin.geometrie.factorys.PerVertexFiller;
@@ -26,7 +26,6 @@ import darwin.geometrie.unpacked.Mesh;
 import darwin.util.math.base.tupel.Tupel2;
 import darwin.util.math.base.vector.Vector2;
 
-import static java.lang.Math.*;
 
 /**
  *
@@ -35,26 +34,35 @@ import static java.lang.Math.*;
 public class GridHeightmap implements HeightmapGenerator
 {
     private final CellFactory factory;
+    private final HeightSource ao;
 
-    public GridHeightmap(int tessFactor)
+    public GridHeightmap(int tessFactor, HeightSource ao)
     {
         factory = new CellFactory(tessFactor);
         factory.createCell(new Vector2());
+        this.ao = ao;
     }
 
     @Override
     public Mesh generateVertexData(final HeightSource image)
     {
         final Element position = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
-        VertexBuffer buffer = new VertexBuffer(position, factory.getVertexCount());
+        final Element ambient = new Element(new GenericVector(DataType.FLOAT, 3), "Normal");
+        VertexBuffer buffer = new VertexBuffer(new DataLayout(position, ambient), factory.getVertexCount());
 
         factory.fillVBufferPerVertex(buffer, new PerVertexFiller()
         {
             @Override
             public void fill(Vertex vertex, Tupel2 pos)
             {
-                float h = image.getHeightValue(pos.getX(), pos.getY());
-                vertex.setAttribute(position, pos.getX(), pos.getY(), h);
+                float x = pos.getX();
+                float y = pos.getY();
+
+                float h = image.getHeightValue(x, y);
+                vertex.setAttribute(position, x-0.5, y-0.5, h);
+
+                float a = ao.getHeightValue(x, y);
+                vertex.setAttribute(ambient, a, 0f, 0f);
             }
         });
 

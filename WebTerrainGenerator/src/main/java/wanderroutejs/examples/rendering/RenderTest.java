@@ -64,7 +64,7 @@ public class RenderTest
             {
 
                 try {
-                    BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
+                    BufferedImage img = ImageUtil2.loadImage("/examples/N50E011.hgt");
 
                     int tessFactor = 10;
                     img = ImageUtil2.getScaledImage(img, tessFactor, tessFactor, false);
