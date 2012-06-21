@@ -16,13 +16,9 @@
  */
 package wanderroutejs.examples;
 
-import java.awt.*;
 import java.awt.image.*;
-import java.io.*;
-import javax.imageio.ImageIO;
+import java.io.IOException;
 import wanderroutejs.imageprocessing.*;
-
-import darwin.util.math.base.vector.*;
 
 /**
  *
@@ -35,17 +31,24 @@ public class NormalMapTest
 //        IIORegistry.getDefaultInstance().registerApplicationClasspathSpis();
 
 
-        BufferedImage img = ImageUtil2.loadImage("examples/N50E011.hgt");
-        BufferedImage img2 = img;
+        BufferedImage img = ImageUtil2.loadImage("/examples/N50E11.hgt");
+        img = ImageUtil2.getScaledImage(img, 512, 512, false);
 
-        BufferedImage normal = new BufferedImage(img2.getWidth(), img2.getHeight(), BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp().filter(img2, normal);
+        BufferedImage normal = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
+        new NormalGeneratorOp().filter(img, normal);
 
+        int a = 512;
+        BufferedImage img2 = new BufferedImage(a, a, img.getType());
+        new GaussBlurOp(5).filter(ImageUtil2.getScaledImage(img, a, a, false), img2);
+
+        BufferedImage normal2 = new BufferedImage(img2.getWidth(), img2.getHeight(), BufferedImage.TYPE_INT_RGB);
+        new NormalGeneratorOp().filter(img2, normal2);
+        BufferedImage ao = new AmbientOcclusionOp(64, 16, 20).filter(img2, normal2);
 
         BufferedImageOp op = new RescaleOp(60, 60, null);
-        BufferedImage adjustedHeight = op.createCompatibleDestImage(img2, img2.getColorModel());
-        op.filter(img2, adjustedHeight);
-        ImageIO.write(normal, "png", new File("test.png"));
+        BufferedImage adjustedHeight = op.createCompatibleDestImage(img, img.getColorModel());
+        op.filter(img, adjustedHeight);
+//        ImageIO.write(normal, "png", new File("test.png"));
 
 //todo buggy
 //        Path p = new Path();
@@ -67,6 +70,7 @@ public class NormalMapTest
         ImageFrame frame = new ImageFrame(1200, 600);
         frame.addImage(normal);
         frame.addImage(adjustedHeight);
+        frame.addImage(ao);
 
     }
 }

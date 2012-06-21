@@ -34,8 +34,8 @@ public class GaussBlurOp implements BufferedImageOp
         int size = kernelRadius*2+1;
         float[] kernel = calculateKernel(kernelRadius);
 
-        gaussX = new ConvolveOp(new Kernel(size, 1, kernel));
-        gaussY = new ConvolveOp(new Kernel(1, size, kernel));
+        gaussX = new ConvolveOp(new Kernel(size, 1, kernel), ConvolveOp.EDGE_NO_OP, null);
+        gaussY = new ConvolveOp(new Kernel(1, size, kernel), ConvolveOp.EDGE_NO_OP, null);
     }
 
     @Override

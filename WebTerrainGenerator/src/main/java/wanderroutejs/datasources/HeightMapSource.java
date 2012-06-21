@@ -33,9 +33,12 @@ public class HeightMapSource implements HeightSource
 
     public HeightMapSource(BufferedImage image, float scaleFactor)
     {
-        heightMap = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-        new GaussBlurOp(9).filter(image, heightMap);
+        heightMap = image;//new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+        new GaussBlurOp(5).filter(image, heightMap);
         this.scaleFactor = scaleFactor;
+
+//        ImageFrame frame = new ImageFrame(600, 600);
+//        frame.addImage(image);;
     }
 
     public HeightMapSource(BufferedImage image, int size, float scaleFactor)
@@ -46,9 +49,9 @@ public class HeightMapSource implements HeightSource
     @Override
     public float getHeightValue(float x, float y)
     {
-//        if (x < 0 || x > 1 || y < 0 || y > 1) {
-//            System.err.println("A requested texturecoordinate is out of range! It got clamped. x:" + x + " y:" + y);
-//        }
+        if (x < 0 || x > 1 || y < 0 || y > 1) {
+            System.out.println(x + "  " + y);
+        }
         x = max(0, min(x, 1));
         y = max(0, min(y, 1));
 
@@ -56,7 +59,7 @@ public class HeightMapSource implements HeightSource
         heightMap.getRaster().getPixel((int) (x * (heightMap.getWidth() - 1)),
                                        (int) (y * (heightMap.getHeight() - 1)),
                                        values);
-        return values[0]*scaleFactor;
+        return values[0] * scaleFactor;
     }
 
     @Override
