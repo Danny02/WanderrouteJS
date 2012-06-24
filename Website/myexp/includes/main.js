@@ -3,7 +3,7 @@ var SCREEN_HEIGHT = window.innerHeight;
 
 var container;
 
-var camera, scene, renderer, mesh, line;
+var camera, scene, renderer, mesh, line, projector;
 
 var shaderUniforms;
 
@@ -15,7 +15,42 @@ var clock = new THREE.Clock();
 window.addEventListener( 'resize', onWindowResize, false );
 
 init();
+function onDocumentMouseDown( event ) {
+    if (event.button === 2) {
+        event.preventDefault();
 
+        var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, 
+                                       - ( event.clientY / window.innerHeight ) * 2 + 1, 
+                                       0.5 );
+
+        projector.unprojectVector( vector, camera );
+
+        var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
+
+        var intersects = ray.intersectObject( mesh );
+
+console.log(intersects);
+        if ( intersects.length > 0 ) {
+            var point = intersects[0].point,
+                cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
+            cube.position.x = point.x;
+            cube.position.y = point.y;
+            cube.position.z = point.z + 0.1;
+
+            scene.add(cube);
+            render();
+        }
+
+        /*
+        // Parse all the faces
+        for ( var i in intersects ) {
+
+            intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
+
+        }
+        */
+    }
+}
 function init() {
 	scene = new THREE.Scene();
 	scene.fog = new THREE.Fog( 0x050505, 800, 2000 );
@@ -28,7 +63,7 @@ function init() {
 	scene.add( camera );
 
 
-
+    
     controls = new THREE.TrackballControls(camera);
     controls.rotateSpeed = 1.0;
     controls.zoomSpeed = 1.2;
@@ -46,6 +81,7 @@ function init() {
         68  // = D
     ];
 
+    projector = new THREE.Projector();
 
     
 
@@ -60,6 +96,8 @@ function init() {
 	container = document.createElement( 'div' );
 	document.body.appendChild( container );
 	container.appendChild( renderer.domElement );
+
+    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
 
 
 	//Terrain Model laden
