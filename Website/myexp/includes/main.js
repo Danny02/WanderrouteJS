@@ -3,7 +3,7 @@ var SCREEN_HEIGHT = window.innerHeight;
 
 var container;
 
-var camera, scene, renderer, mesh;
+var camera, scene, renderer, mesh, line;
 
 var shaderUniforms;
 
@@ -11,11 +11,10 @@ var mouseX = 0, mouseY = 0;
 
 var clock = new THREE.Clock();
 
-document.addEventListener('mousemove', onDocumentMouseMove, false);
+//document.addEventListener('mousemove', onDocumentMouseMove, false);
 window.addEventListener( 'resize', onWindowResize, false );
 
 init();
-animate();
 
 function init() {
 	scene = new THREE.Scene();
@@ -23,8 +22,32 @@ function init() {
 
 	//camera
 	camera = new THREE.PerspectiveCamera( 20, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 2000 );
-	camera.position.z = 800;
+    camera.position.x = 0;
+    camera.position.y = 500;
+    camera.position.z = 800;
 	scene.add( camera );
+
+
+
+    controls = new THREE.TrackballControls(camera);
+    controls.rotateSpeed = 1.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+
+    controls.noZoom = false;
+    controls.noPan = false;
+
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+
+    controls.keys = [
+        65, // = A
+        83, // = S
+        68  // = D
+    ];
+
+
+    
 
 	// RENDERER
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -52,11 +75,13 @@ function init() {
 
 	loader.load( "resources/map1.ctm", function( geometry ){
 
-	    var shaderMaterial = new THREE.ShaderMaterial({
-			uniforms : shaderUniforms,
-	        vertexShader:   $('customVertexshader'),
-	        fragmentShader: $('customFragmentshader')
-	    });
+        line = createPath(geometry, 50);
+
+        var shaderMaterial = new THREE.ShaderMaterial({
+			    uniforms : shaderUniforms,
+    	        vertexShader:   $('customVertexshader'),
+	            fragmentShader: $('customFragmentshader')
+	        });
 
 		mesh = new THREE.Mesh( geometry, shaderMaterial );
 
@@ -64,7 +89,11 @@ function init() {
 		mesh.scale.set(300, 300, 250 );
 		mesh.rotation.x = -0.8;
 
+
 		scene.add( mesh );
+
+        animateStart();
+
 	}, useWorker, useBuffers );
 	
 	clock.start();
@@ -85,7 +114,7 @@ function onWindowResize( event ) {
 	camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
 	camera.updateProjectionMatrix();
 }
-
+/*
 function onDocumentMouseMove( event ) {
 	var windowHalfX = window.innerWidth / 2;
 	var windowHalfY = window.innerHeight / 2;
@@ -94,22 +123,70 @@ function onDocumentMouseMove( event ) {
 	mouseY = ( event.clientY - windowHalfY );
 }
 
-function animate() {
-	requestAnimationFrame( animate );
+*/
 
-	render();
-}
-
-function render() {
-	camera.position.x += ( mouseX - camera.position.x ) * .05;
-	camera.position.y += ( - mouseY - camera.position.y ) * .05;
-
+function animateStart () {
 	var delta = clock.getDelta();
 	shaderUniforms.time.value += delta;
 
-	mesh.rotation.z += 0.1 * delta;
+	camera.position.x += ( mouseX - camera.position.x ) * .05;
+	camera.position.y += ( - mouseY - camera.position.y ) * .05;
 
+    if (camera.position.y <= 2) {
+        controls.addEventListener('change', render);
+        mesh.add( line );
+	    requestAnimationFrame(animate);
+    }
+    else {
+	    requestAnimationFrame(animateStart);
+    }
+
+    render();
+}
+
+function animate() {
+	requestAnimationFrame( animate );
+    controls.update();
+}
+
+function render() {
 	camera.lookAt( scene.position );
 
 	renderer.render( scene, camera );
+}
+
+function createPath(geometry, len) {
+    geometry.computeBoundingBox();
+    var min = geometry.boundingBox.min,
+        max = geometry.boundingBox.max,
+        meshSize = geometry.vertices.length,
+        path = new THREE.Geometry(),
+        line,
+        i = 0,
+        deltaX = max.x - min.x,
+        deltaY = max.y - min.y,
+        deltaZ = 0.5 - min.z;
+
+
+    len || (len = 50);
+
+    for (i = 0; i < len; i+=1) {
+        path.vertices.push(
+            geometry.vertices[parseInt(meshSize * Math.random())]
+        );
+    }
+    path.computeVertexNormals();
+
+    line = new THREE.Line(path, new THREE.LineBasicMaterial({
+        color : 0xff0000,
+        linewidth: 5,
+        linecap : 'round',
+        linejoin : 'round',
+        vertexColors : false,
+        fog : false
+    }), THREE.LineStrip);
+
+
+
+    return line;
 }
