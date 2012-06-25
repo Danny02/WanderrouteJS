@@ -16,7 +16,44 @@
 	</head>
 
 	<body>
-		<script type="x-shader/x-vertex" id="customVertexshader">
+
+		<div id="info">
+			Test Test
+		</div>
+		<script type="x-shader/x-vertex" id="simple.vert">
+		    void main(){
+		        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+		    }
+		</script>
+		<script type="x-shader/x-fragment" id="depthSave.frag">
+			vec4 packFloatToVec4i(const float value)
+			{
+			   const vec4 bitSh = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);
+			   const vec4 bitMsk = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);
+			   vec4 res = fract(value * bitSh);
+			   res -= res.xxyz * bitMsk;
+			   return res;
+			}
+		    void main(){
+		        gl_FragColor = packFloatToVec4i(gl_FragDepth);
+		    }
+		</script>
+		<script type="x-shader/x-fragment" id="depthUse.frag">
+			float unpackFloatFromVec4i(const vec4 value)
+			{
+			   const vec4 bitSh = vec4(1.0 / (256.0 * 256.0 * 256.0), 1.0 / (256.0 * 256.0), 1.0 / 256.0, 1.0);
+			   return(dot(value, bitSh));
+			}
+		    void main(){
+		        gl_FragColor = packFloatToVec4i(gl_FragDepth);
+		    }
+		</script>
+		<script type="x-shader/x-fragment" id="test.frag">
+		    void main(){
+		        gl_FragColor = vec4(1.,0.,0.,0.5);
+		    }
+		</script>
+		<script type="x-shader/x-vertex" id="terrain.vert">
 		    // switch on high precision floats
 		    #ifdef GL_ES
 		    precision highp float;
@@ -34,7 +71,7 @@
 		        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
 		    }
 		</script>
-		<script type="x-shader/x-fragment" id="customFragmentshader">
+		<script type="x-shader/x-fragment" id="terrain.frag">
 		    #ifdef GL_ES
 		        precision highp float;
 		    #endif
@@ -86,6 +123,8 @@
 		<script src="includes/ctm.js"></script>
 		<script src="includes/CTMLoader.js"></script>
 		<script src="includes/lzma.js"></script>
+		<script src="includes/Detector.js"></script>
+
 		<script src="includes/main.js"></script>
 	</body>
 
