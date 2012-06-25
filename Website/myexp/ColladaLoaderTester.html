@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Some Collada Objects</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background-color: #FFFFFF;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<script src="includes/Three.js"></script>
+		<script src="includes/ColladaLoader.js"></script>
+
+		<script>
+
+			var container, stats;
+
+			var camera, scene, renderer, objects;
+			var directionalLight, pointLight;
+			var dae, dae1, dae2, dae3;
+			
+			
+			// Loading Collada Files
+			var loader = new THREE.ColladaLoader();
+			loader.options.convertUpAxis = true;
+			
+			loader.load( 'resources/models/cubicSign_parking.dae', function colladaReady( collada ) {
+
+				dae = collada.scene;
+
+				dae.scale.x = dae.scale.y = dae.scale.z = 1.0;
+				dae.updateMatrix();
+
+			} );
+
+			loader.load( 'resources/models/TestBaum.dae', function colladaReady( collada ) {
+
+				dae1 = collada.scene;
+
+				dae1.scale.x = dae1.scale.y = dae1.scale.z = 1.0;
+				dae1.updateMatrix();
+
+			} );
+
+			loader.load( 'resources/models/cubicSign_food.dae', function colladaReady( collada ) {
+
+				dae2 = collada.scene;
+
+				dae2.scale.x = dae2.scale.y = dae2.scale.z = 1.0;
+				dae2.updateMatrix();
+
+			} );
+
+			loader.load( 'resources/models/cubicSign_toilet.dae', function colladaReady( collada ) {
+
+				dae3 = collada.scene;
+
+				dae3.scale.x = dae3.scale.y = dae3.scale.z = 1.0;
+				dae3.updateMatrix();
+
+				init();
+				animate();
+			} );
+
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				scene = new THREE.Scene();
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( 2, 2, 3 );
+				scene.add( camera );
+
+
+				// Grid
+				var line_material = new THREE.LineBasicMaterial( { color: 0x000000, opacity: 0.3 } ),
+					geometry = new THREE.Geometry(),
+					floor = -0.04, step = 1, size = 14;
+
+				for ( var i = 0; i <= size / step * 2; i ++ ) {
+
+					geometry.vertices.push( new THREE.Vector3( - size, floor, i * step - size ) );
+					geometry.vertices.push( new THREE.Vector3(   size, floor, i * step - size ) );
+
+					geometry.vertices.push( new THREE.Vector3( i * step - size, floor, -size ) );
+					geometry.vertices.push( new THREE.Vector3( i * step - size, floor,  size ) );
+
+				}
+
+				var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
+				scene.add( line );
+
+
+				// Add the Collada to Scene
+				scene.add( dae );
+				scene.add( dae1 );
+				dae2.position.set(-3, -1, -3);
+				scene.add( dae2 );
+				dae3.position.set(6, 0, 6);
+				scene.add(dae3);
+
+
+				// Lights
+				scene.add( new THREE.AmbientLight( 0xffffff ) );
+
+				directionalLight = new THREE.DirectionalLight( 0xffffff );
+				scene.add( directionalLight );
+
+				pointLight = new THREE.PointLight( 0xffffff, 1, 100);
+				scene.add(pointLight);
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.appendChild( renderer.domElement );
+			}
+
+			//
+
+			var t = 0;
+			function animate() {
+
+				requestAnimationFrame( animate );
+				render();
+			}
+
+			function render() {
+
+				var timer = Date.now() * 0.0005;
+
+				camera.position.x = Math.cos( timer ) * 10;
+				camera.position.y = 2;
+				camera.position.z = Math.sin( timer ) * 10;
+
+				directionalLight.position.x = camera.position.x;
+				directionalLight.position.y = camera.position.y;
+				directionalLight.position.z = camera.position.z;
+				directionalLight.position.normalize();
+
+				pointLight.position.set(camera.position.x, camera.position.y, camera.position.z);
+
+				dae.position.set(Math.cos(2*timer)*(-3), 1, Math.sin(2*timer)*(-5));
+				dae3.rotation.y += 0.05;
+
+				camera.lookAt( scene.position );
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
