@@ -22,6 +22,9 @@
 
         this.shaderUniforms = null;
 
+        this.itemsToLoad = 2;
+        this.itemsLoaded = 0;
+
         this.postprocessing = {};
 
         this.clock = new THREE.Clock();
@@ -31,16 +34,14 @@
         this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onMeshLoaded = this.onMeshLoaded.bind(this);
+        this.onTrackMashLoaded = this.onTrackMashLoaded.bind(this);
 
         this.init();
     };
 
     Main.prototype = {
         init : function () {
-            var scene, projector,
-                loader,
-                terrainMesh,
-                shaderUniforms;
+            var scene, projector;
 
             this.container = document.createElement('div');
             document.body.appendChild(this.container);
@@ -57,28 +58,12 @@
 
             this.onWindowResize();
 
-            //load terrain model
-            this.shaderUniforms = shaderUniforms = {
-                normal: {
-                    type: "t",
-                    value: 0,
-                    texture: THREE.ImageUtils.loadTexture("resources/normal.png")
-                },
-                time: {
-                    type: "f",
-                    value: 1.0
-                }
-            };
-
-            loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/map1.ctm", this.onMeshLoaded, false, true);
+            this.initTerrain();
+            this.initPostprocessing();
 
             this.initEventListeners();
 
-            this.initPostprocessing();
 
-            this.clock.start();
-            this.animateStart();
         },
 
         initCamera : function () {
@@ -86,7 +71,7 @@
             var camera = this.camera = new THREE.PerspectiveCamera(20, this.SCREEN_WIDTH / this.SCREEN_HEIGHT, 1, 2000);
             camera.position.x = 0;
             camera.position.y = 500;
-            camera.position.z = 800;
+            camera.position.z = 3;
             this.scene.add(camera);
         },
 
@@ -134,8 +119,29 @@
 
         initEventListeners : function () {
             //document.addEventListener('mousemove', onDocumentMouseMove, false);
-            window.addEventListener('resize', this.onWindowResize.bind(this), false);
-            document.addEventListener('mousedown', this.onDocumentMouseDown.bind(this), false);
+            window.addEventListener('resize', this.onWindowResize, false);
+            document.addEventListener('mousedown', this.onDocumentMouseDown, false);
+        },
+
+        initTerrain : function () {
+            var loader,
+                shaderUniforms;
+
+            this.shaderUniforms = shaderUniforms = {
+                normal: {
+                    type: "t",
+                    value: 0,
+                    texture: THREE.ImageUtils.loadTexture("resources/normal.png")
+                },
+                time: {
+                    type: "f",
+                    value: 1.0
+                }
+            };
+
+            loader = new THREE.CTMLoader(this.renderer.context);
+            loader.load("resources/map1.ctm", this.onMeshLoaded, false, true);
+
         },
 
         initPostprocessing : function () {
@@ -145,26 +151,20 @@
                     stencilBuffer: false
                 },
                 roadTest,
-                roadMesh;
+                roadMesh,
+                loader;
 
             postprocessing.scene = new THREE.Scene();
 
             postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
-
-            postprocessing.depthOnlyMaterial = new THREE.ShaderMaterial({
-                vertexShader:   this.$('simple.vert').textContent,
-                fragmentShader: this.$('depthSave.frag').textContent
-            });
 
             roadTest = new THREE.ShaderMaterial({
                 vertexShader:   this.$('simple.vert').textContent,
                 fragmentShader: this.$('test.frag').textContent
             });
 
-            roadMesh = this.roadMesh = new THREE.Mesh(new THREE.CubeGeometry(300, 5, 300), roadTest);
-            roadMesh.rotation.x = -0.8;
-            roadMesh.material.depthWrite = false;
-            postprocessing.scene.add(roadMesh);
+            loader = new THREE.CTMLoader(this.renderer.context);
+            loader.load("resources/path.ctm", this.onTrackMashLoaded, false, true);
         },
 
         $ : function (id) {
@@ -183,11 +183,28 @@
 
             terrainMesh = this.terrainMesh = new THREE.Mesh(geometry, shaderMaterial);
 
-            terrainMesh.position.set(0, -40, -100);
-            terrainMesh.scale.set(300, 300, 250);
             terrainMesh.rotation.x = -0.8;
             this.scene.add(terrainMesh);
 
+            this.updateLoadCounter();
+        },
+
+        onTrackMashLoaded : function (geometry) {
+            var roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
+            roadMesh.position.set(-0.5, -0.5, 0);
+            roadMesh.rotation.x = -0.8;
+            roadMesh.material.depthWrite = false;
+            this.postprocessing.scene.add(this.roadMesh);
+
+            this.updateLoadCounter();
+        },
+
+        updateLoadCounter : function () {
+            this.itemsLoaded += 1;
+            if (this.itemsLoaded === this.itemsToLoad) {
+                this.clock.start();
+                this.animateStart();
+            }
         },
 
         onDocumentMouseDown : function (e) {
@@ -196,8 +213,8 @@
 
                 var camera = this.camera,
                     vector = new THREE.Vector3((e.clientX / this.SCREEN_WIDTH) * 2 - 1,
-                    - (e.clientY / this.SCREEN_HEIGHT) * 2 + 1,
-                    0.5),
+                        - (e.clientY / this.SCREEN_HEIGHT) * 2 + 1,
+                        0.5),
                     ray,
                     intersects,
                     point, 
@@ -220,6 +237,7 @@
                 }
             }
         },
+
         onWindowResize : function (event) {
             this.SCREEN_WIDTH = window.innerWidth;
             this.SCREEN_HEIGHT = window.innerHeight;
@@ -237,6 +255,8 @@
 
             this.camera.lookAt(this.scene.position);
 
+            this.render();
+
             if (this.camera.position.y < 2) {
                 window.requestAnimationFrame(this.animate);
             }
@@ -244,16 +264,14 @@
                 window.requestAnimationFrame(this.animateStart);
                 this.camera.position.y -= 250 * delta;
             }
-
-            this.render();
         },
 
         animate : function () {
             var delta = this.clock.getDelta();
-            window.requestAnimationFrame(this.animate);
             this.controls.update();
             this.terrainMesh.rotation.z += 0.1 * delta;
             this.render();
+            window.requestAnimationFrame(this.animate);
         },
 
         render : function () {
@@ -328,3 +346,5 @@
 
     main = new Main();
 }());
+
+
