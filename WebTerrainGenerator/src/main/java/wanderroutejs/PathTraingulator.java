@@ -25,6 +25,7 @@ import java.util.*;
 import javax.media.opengl.GL;
 import wanderroutejs.datasources.HeightSource;
 import wanderroutejs.examples.ImageFrame;
+import wanderroutejs.io.PlainJSONModelWriter;
 
 import darwin.geometrie.data.GenericVector;
 import darwin.geometrie.data.*;
@@ -74,44 +75,47 @@ public class PathTraingulator
                                                           float height)
     {
         Collection<ImmutableVector<E>> poly = buildExtrudedPolygon(path, extrude);
-        int poSz = poly.size();
+
+        int polyVertCount = poly.size();
+        int pathVertCount = path.size();
 
         Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
-        VertexBuffer vb = new VertexBuffer(pos, poSz * 2);
+        VertexBuffer vb = new VertexBuffer(pos, polyVertCount * 2);
 
         //create side-wall
         for (ImmutableVector<E> vector : poly) {
             float[] v = vector.getCoords();
-            vb.newVertex().setAttribute(pos, v[0], height, v[1]);
-            vb.newVertex().setAttribute(pos, v[0], -height, v[1]);
+            vb.newVertex().setAttribute(pos, v[0], v[1], height);
+            vb.newVertex().setAttribute(pos, v[0], v[1], -height);
         }
 
-        int[] indices = new int[((path.size() - 1) * 2 * 2 + poSz * 2) * 3];
+        int[] indices = new int[(polyVertCount * 2 + (pathVertCount - 1) * 4) * 3];
 
         //side-wall  0,1,2  3,2,1  2,3,4  5,4,3
-        for (int i = 0; i < poSz - 1; i++) {
+        for (int i = 0; i < polyVertCount - 1; i++) {
             int t = i * 2;
             int[] tmp = triangulate(t, t + 1, t + 2, t + 3);
             System.arraycopy(tmp, 0, indices, i * 6, 6);
         }
         //connect last to first path node
-        int t = poSz * 2;
-        int[] tmp = triangulate(t - 4, t - 3, t - 2, t - 1);
-        System.arraycopy(tmp, 0, indices, poSz * 6, 6);
+        int t = polyVertCount * 2;
+        int[] tmp = triangulate(t - 2, t - 1, 0, 1);
+        System.arraycopy(tmp, 0, indices, (polyVertCount - 1) * 6, 6);
 
-        int paSz = path.size();
-        //top - bottom
-        for (int i = 0; i < paSz - 1; i++) {
-            int br = paSz + i;
-            int tr = paSz + i + 1;
-            int bl = paSz - i - 1;
-            int tl = paSz - i - 2;
-            int offset = (poSz + i) * 6;
-            for (int j = 0; j < 2; j++) {
-                tmp = triangulate(tl * 2 + j, bl * 2 + j, tr * 2 + j, br * 2 + j);
+        int wallOffset = polyVertCount * 6;
+//        top - bottom
+        for (int i = 0; i < pathVertCount - 1; i++) {
+            int br = pathVertCount + i;
+            int tr = pathVertCount + i + 1;
+            int bl = pathVertCount - i - 1;
+            int tl = pathVertCount - i - 2;
+            int offset = wallOffset + i * 12;
+                tmp = triangulate(tl * 2, bl * 2, tr * 2, br * 2);
                 System.arraycopy(tmp, 0, indices, offset, 6);
-                offset += paSz;
-            }
+
+                tmp = triangulate(tl * 2 + 1, bl * 2 + 1, tr * 2 + 1, br * 2 + 1);
+                System.arraycopy(tmp, 0, indices, offset+6, 6);
+
         }
 
         return new Mesh(indices, vb, GL.GL_TRIANGLES);
@@ -162,10 +166,10 @@ public class PathTraingulator
             ImmutableVector<E> end, ImmutableVector<E> other, float extrude)
     {
         Vector<E> dir = other.clone().sub(end);
-        Vector<E> ex = rotateCCW(dir).normalize();
+        ImmutableVector<E> ex = dir.clone().rotateCCW(2).normalize();
         return new Vector[]{
-                    ex.mul(extrude).add(end),
-                    ex.mul(-extrude).add(end)
+                    ex.clone().mul(extrude).add(end),
+                    ex.clone().mul(-extrude).add(end)
                 };
     }
 
@@ -178,8 +182,8 @@ public class PathTraingulator
         ImmutableVector<E> dir1 = mid.clone().sub(first);
         ImmutableVector<E> dir2 = last.clone().sub(mid);
 
-        Vector<E> left = rotateCCW(dir1.clone()).normalize().mul(extrude);
-        Vector<E> right = left.clone().mul(-1);
+        ImmutableVector<E> left = dir1.clone().rotateCCW(2).normalize().mul(extrude);
+        ImmutableVector<E> right = left.clone().mul(-1);
 
         if (dir1.isParrallelTo(dir2)) {
             return new Vector3[]{mid.clone().add(left).toVector3(),
@@ -189,7 +193,7 @@ public class PathTraingulator
         Line<E> firstLeft = Line.fromPoints(first.clone().add(left), mid.clone().add(left));
         Line<E> firstRight = Line.fromPoints(first.clone().add(right), mid.clone().add(right));
 
-        left = rotateCCW(dir2.clone()).normalize().mul(extrude);
+        left = dir2.clone().rotateCCW(2).normalize().mul(extrude);
         right = left.clone().mul(-1);
 
         Line<E> secondLeft = Line.fromPoints(last.clone().add(left), mid.clone().add(left));
@@ -202,45 +206,55 @@ public class PathTraingulator
                 };
     }
 
-    private <E extends Vector<E>> Vector<E> rotateCCW(Vector<E> v)
-    {
-        float[] d = v.getCoords();
-        float tmp = d[1];
-        d[1] = -d[0];
-        d[0] = tmp;
-        return v;
-    }
-
     public static void main(String[] args) throws IOException
     {
         Path<Vector2> path = new Path<>();
-        path.addPathElement(new Vector2(30, 30));
-        path.addPathElement(new Vector2(90, 31));
-        path.addPathElement(new Vector2(90, 70));
+        path.addPathElement(new Vector2(0.1f, 0.1f));
+        path.addPathElement(new Vector2(0.5f, 0.15f));
+        path.addPathElement(new Vector2(0.55f, 0.25f));
+        path.addPathElement(new Vector2(0.55f, 0.45f));
+        path.addPathElement(new Vector2(0.25f, 0.55f));
+        path.addPathElement(new Vector2(0.27f, 0.65f));
+        path.addPathElement(new Vector2(0.87f, 0.95f));
 
         PathTraingulator trian = new PathTraingulator();
 
-        BufferedImage image = new BufferedImage(500, 500, BufferedImage.TYPE_INT_RGB);
+        int size = 500;
+        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = image.createGraphics();
         g2.setColor(Color.RED);
 
         Polygon poly = new Polygon();
-        for (ImmutableVector<Vector2> v : trian.buildExtrudedPolygon(path, 5)) {
-            int x = (int)v.getCoords()[0];
-            int y = (int)v.getCoords()[1];
+        for (ImmutableVector<Vector2> v : trian.buildExtrudedPolygon(path, 0.01f)) {
+            int x = (int) (v.getCoords()[0] * size);
+            int y = (int) (v.getCoords()[1] * size);
             poly.addPoint(x, y);
-            System.out.println(x+"  "+y);
         }
         g2.fillPolygon(poly);
 
         ImageFrame frame = new ImageFrame(550, 550);
         frame.addImage(image);
-
-        Mesh m = trian.buildExtrudedPrisma(path, 5f, 5);
+//
+        Mesh m = trian.buildExtrudedPrisma(path, 0.01f, 5);
 
         try (FileOutputStream out = new FileOutputStream("path.ctm")) {
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
             writer.writeModel(out, new Model[]{new Model(m, null)});
+        }
+
+
+        Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
+        VertexBuffer vb = new VertexBuffer(pos, path.size());
+        for(ImmutableVector<Vector2> v:path.getVectorIterable())
+        {
+            float[] c = v.getCoords();
+            vb.newVertex().setAttribute(pos, c[0], c[1], 0f);
+        }
+
+        Mesh m2 = new Mesh(null, vb, -1);
+        try (FileOutputStream out = new FileOutputStream("path.json")) {
+            ModelWriter writer = new PlainJSONModelWriter();
+            writer.writeModel(out, new Model[]{new Model(m2, null)});
         }
     }
 }
