@@ -1,309 +1,330 @@
-if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-var container;
-
-var camera, scene, renderer, line, projector, controls;
-var terrainMesh;
-
-var shaderUniforms, postprocessing = {};
-
-var clock = new THREE.Clock();
-
-//document.addEventListener('mousemove', onDocumentMouseMove, false);
-window.addEventListener( 'resize', onWindowResize, false );
-
-init();
-function onDocumentMouseDown( event ) {
-    if (event.button === 2) {
-        event.preventDefault();
-
-        var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,
-            - ( event.clientY / window.innerHeight ) * 2 + 1,
-            0.5 );
-
-        projector.unprojectVector( vector, camera );
-
-        var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
-
-        var intersects = ray.intersectObject( terrainMesh );
-
-        console.log(intersects);
-        if ( intersects.length > 0 ) {
-            var point = intersects[0].point;
-            var cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
-            cube.position.x = point.x;
-            cube.position.y = point.y;
-            cube.position.z = point.z + 0.1;
-
-            scene.add(cube);
-        }
-
-    /*
-        // Parse all the faces
-        for ( var i in intersects ) {
-
-            intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
-
-        }
-        */
+/*global THREE, Detector */
+(function () {
+    if (!Detector.webgl) {
+        Detector.addGetWebGLMessage();
     }
-}
-function init() {
 
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
+    var main,
+        Main;
+        
+    Main = function () {
+        this.container = null;
 
-    //
+        this.camera = null;
+        this.scene = null;
+        this.renderer = null;
+        this.projector = null;
+        this.controls = null;
 
-    scene = new THREE.Scene();
+        this.roadMesh = null;
+        this.terrainMesh = null;
+        this.line = null;
 
-    //camera
-    camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 2000 );
-    camera.position.x = 0;
-    camera.position.y = 500;
-    camera.position.z = 3;
-    scene.add( camera );
+        this.shaderUniforms = null;
 
+        this.postprocessing = {};
 
+        this.clock = new THREE.Clock();
+    
+        this.animate = this.animate.bind(this);
+        this.animateStart = this.animateStart.bind(this);
+        this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
+        this.onWindowResize = this.onWindowResize.bind(this);
+        this.onMeshLoaded = this.onMeshLoaded.bind(this);
 
-    controls = new THREE.TrackballControls(camera);
-    controls.rotateSpeed = 1.0;
-    controls.zoomSpeed = 1.2;
-    controls.panSpeed = 0.8;
+        this.init();
+    };
 
-    controls.noZoom = false;
-    controls.noPan = false;
+    Main.prototype = {
+        init : function () {
+            var scene, projector,
+                loader,
+                terrainMesh,
+                shaderUniforms;
 
-    controls.staticMoving = true;
-    controls.dynamicDampingFactor = 0.3;
+            this.container = document.createElement('div');
+            document.body.appendChild(this.container);
 
-    controls.keys = [
-    65, // = A
-    83, // = S
-    68  // = D
-    ];
+            scene = this.scene = new THREE.Scene();
 
-    projector = new THREE.Projector();
+            this.initCamera(); 
 
+            this.initControls();
 
+            this.projector = projector = new THREE.Projector();
 
-    // RENDERER
-    renderer = new THREE.WebGLRenderer( {
-        antialias: true
-    } );
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor({
-        r:0,
-        g:0,
-        b:0
-    }, 1 );
-    renderer.gammaInput = true;
-    renderer.gammaOutput = true;
-    renderer.autoClear = false;
+            this.initRenderer(); 
 
-    renderer.domElement.style.position = 'absolute';
-    renderer.domElement.style.top = 0 + "px";
-    renderer.domElement.style.left = "0px";
+            this.onWindowResize();
 
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
-    container.appendChild( renderer.domElement );
+            //load terrain model
+            this.shaderUniforms = shaderUniforms = {
+                normal: {
+                    type: "t",
+                    value: 0,
+                    texture: THREE.ImageUtils.loadTexture("resources/normal.png")
+                },
+                time: {
+                    type: "f",
+                    value: 1.0
+                }
+            };
 
-    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+            loader = new THREE.CTMLoader(this.renderer.context);
+            loader.load("resources/map1.ctm", this.onMeshLoaded, false, true);
 
+            this.initEventListeners();
 
-    //Terrain Model laden
+            this.initPostprocessing();
 
-    shaderUniforms = {
-        normal: {
-            type: "t",
-            value: 0,
-            texture: THREE.ImageUtils.loadTexture( "resources/normal.png" )
+            this.clock.start();
+            this.animateStart();
         },
-        time: {
-            type: "f",
-            value: 1.0
+
+        initCamera : function () {
+            //camera
+            var camera = this.camera = new THREE.PerspectiveCamera(20, this.SCREEN_WIDTH / this.SCREEN_HEIGHT, 1, 2000);
+            camera.position.x = 0;
+            camera.position.y = 500;
+            camera.position.z = 800;
+            this.scene.add(camera);
+        },
+
+        initControls : function () {
+            var controls = this.controls = new THREE.TrackballControls(this.camera);
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+
+            controls.noZoom = false;
+            controls.noPan = false;
+
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+
+            controls.keys = [
+                65, // = A
+                83, // = S
+                68  // = D
+            ];
+        },
+
+        initRenderer : function () {
+            // RENDERER
+            var renderer = this.renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor({
+                r : 0,
+                g : 0,
+                b : 0
+            }, 1);
+            renderer.gammaInput = true;
+            renderer.gammaOutput = true;
+            renderer.autoClear = false;
+
+            renderer.domElement.style.position = 'absolute';
+            renderer.domElement.style.top = 0 + "px";
+            renderer.domElement.style.left = "0px";
+
+            this.container.appendChild(renderer.domElement);
+
+        },
+
+        initEventListeners : function () {
+            //document.addEventListener('mousemove', onDocumentMouseMove, false);
+            window.addEventListener('resize', this.onWindowResize.bind(this), false);
+            document.addEventListener('mousedown', this.onDocumentMouseDown.bind(this), false);
+        },
+
+        initPostprocessing : function () {
+            var postprocessing = this.postprocessing,
+                options = {
+                    minFilter: THREE.LinearFilter,
+                    stencilBuffer: false
+                },
+                roadTest,
+                roadMesh;
+
+            postprocessing.scene = new THREE.Scene();
+
+            postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
+
+            postprocessing.depthOnlyMaterial = new THREE.ShaderMaterial({
+                vertexShader:   this.$('simple.vert').textContent,
+                fragmentShader: this.$('depthSave.frag').textContent
+            });
+
+            roadTest = new THREE.ShaderMaterial({
+                vertexShader:   this.$('simple.vert').textContent,
+                fragmentShader: this.$('test.frag').textContent
+            });
+
+            roadMesh = this.roadMesh = new THREE.Mesh(new THREE.CubeGeometry(300, 5, 300), roadTest);
+            roadMesh.rotation.x = -0.8;
+            roadMesh.material.depthWrite = false;
+            postprocessing.scene.add(roadMesh);
+        },
+
+        $ : function (id) {
+            return document.getElementById(id);
+        },
+
+        onMeshLoaded : function (geometry) {
+            //line = createPath(geometry, 50);
+
+            var terrainMesh,
+                shaderMaterial = new THREE.ShaderMaterial({
+                    uniforms : this.shaderUniforms,
+                    vertexShader:   this.$('terrain.vert').textContent,
+                    fragmentShader: this.$('terrain.frag').textContent
+                });
+
+            terrainMesh = this.terrainMesh = new THREE.Mesh(geometry, shaderMaterial);
+
+            terrainMesh.position.set(0, -40, -100);
+            terrainMesh.scale.set(300, 300, 250);
+            terrainMesh.rotation.x = -0.8;
+            this.scene.add(terrainMesh);
+
+        },
+
+        onDocumentMouseDown : function (e) {
+            if (e.button === 2) {
+                e.preventDefault();
+
+                var camera = this.camera,
+                    vector = new THREE.Vector3((e.clientX / this.SCREEN_WIDTH) * 2 - 1,
+                    - (e.clientY / this.SCREEN_HEIGHT) * 2 + 1,
+                    0.5),
+                    ray,
+                    intersects,
+                    point, 
+                    cube;
+
+                this.projector.unprojectVector(vector, camera);
+
+                ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+
+                intersects = ray.intersectObject(this.terrainMesh);
+
+                if (intersects.length > 0) {
+                    point = intersects[0].point;
+                    cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
+                    cube.position.x = point.x;
+                    cube.position.y = point.y;
+                    cube.position.z = point.z + 0.1;
+
+                    this.scene.add(cube);
+                }
+            }
+        },
+        onWindowResize : function (event) {
+            this.SCREEN_WIDTH = window.innerWidth;
+            this.SCREEN_HEIGHT = window.innerHeight;
+
+            this.renderer.setSize(this.SCREEN_WIDTH, this.SCREEN_HEIGHT);
+
+            this.camera.aspect = this.SCREEN_WIDTH / this.SCREEN_HEIGHT;
+            this.camera.updateProjectionMatrix();
+        },
+
+        animateStart : function () {
+            var delta = this.clock.getDelta();
+
+            this.shaderUniforms.time.value += delta;
+
+            this.camera.lookAt(this.scene.position);
+
+            if (this.camera.position.y < 2) {
+                window.requestAnimationFrame(this.animate);
+            }
+            else {
+                window.requestAnimationFrame(this.animateStart);
+                this.camera.position.y -= 250 * delta;
+            }
+
+            this.render();
+        },
+
+        animate : function () {
+            var delta = this.clock.getDelta();
+            window.requestAnimationFrame(this.animate);
+            this.controls.update();
+            this.terrainMesh.rotation.z += 0.1 * delta;
+            this.render();
+        },
+
+        render : function () {
+            var renderer = this.renderer,
+                gl = renderer.getContext();
+
+            renderer.clear(true, true, true);
+
+            //Terrain rendern nd Depthbuffer füllen
+
+            renderer.render(this.scene, this.camera);
+
+            //Stencilbuffer füllen
+            gl.enable(gl.STENCIL_TEST);
+            gl.stencilFunc(gl.ALWAYS, 0, 0);
+            gl.colorMask(false, false, false, false);
+            this.roadMesh.material.depthTest = true;
+            gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
+            renderer.setFaceCulling("front");
+            renderer.render(this.postprocessing.scene, this.camera);
+
+            gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
+            renderer.setFaceCulling("back");
+            renderer.render(this.postprocessing.scene, this.camera);
+            gl.colorMask(true, true, true, true);
+
+            //weg rendern
+            gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
+            renderer.setFaceCulling("front");
+            this.roadMesh.material.depthTest = false;
+            renderer.render(this.postprocessing.scene, this.camera);
+
+            //GL state zurücksetzten
+            gl.disable(gl.STENCIL_TEST);
+            renderer.setFaceCulling("back");
+
+        },
+
+        createPath : function (geometry, len) {
+            geometry.computeBoundingBox();
+            var path = new THREE.Geometry(), i, line;
+
+            /*
+            var min = geometry.boundingBox.min;
+            var max = geometry.boundingBox.max;
+            var deltaX = max.x - min.x,
+            deltaY = max.y - min.y,
+            deltaZ = 0.5 - min.z;*/
+
+
+            len || (len = 50);//?? wtf
+
+            for (i = 0; i < len; i += 1) {
+                path.vertices.push(
+                    geometry.vertices[parseInt(Math.random(), 10)]
+                    );
+            }
+            path.computeVertexNormals();
+
+            line = new THREE.Line(path, new THREE.LineBasicMaterial({
+                color : 0xff0000,
+                linewidth: 5,
+                linecap : 'round',
+                linejoin : 'round',
+                vertexColors : false,
+                fog : false
+            }), THREE.LineStrip);
+
+            return line;
         }
     };
 
-    var loader = new THREE.CTMLoader( renderer.context );
-    loader.load( "resources/map1.ctm", function( geometry ){
-
-        //line = createPath(geometry, 50);
-
-        var shaderMaterial = new THREE.ShaderMaterial({
-            uniforms : shaderUniforms,
-            vertexShader:   $('terrain.vert'),
-            fragmentShader: $('terrain.frag')
-        });
-
-        terrainMesh = new THREE.Mesh( geometry, shaderMaterial );
-
-        terrainMesh.rotation.x = -0.8;
-        scene.add( terrainMesh );
-
-    }, false, true );
-    initPostprocessing();
-
-    clock.start();
-    animateStart();
-}
-
-//
-var roadMesh;
-function initPostprocessing() {
-
-    postprocessing.scene = new THREE.Scene();
-
-    var options = {
-        minFilter: THREE.LinearFilter,
-        stencilBuffer: false
-    };
-    postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, options );
-
-    /*postprocessing.depthOnlyMaterial = new THREE.ShaderMaterial({
-        vertexShader:   $('simple.vert'),
-        fragmentShader: $('depthSave.frag')
-    });*/
-
-    var roadTest = new THREE.ShaderMaterial({
-        vertexShader:   $('simple.vert'),
-        fragmentShader: $('test.frag')
-    });
-
-    //roadMesh = new THREE.Mesh( new THREE.CubeGeometry( 0.7, 3., 0.7), roadTest);
-
-    //	postprocessing.scene.add( roadMesh );
-
-	 var loader = new THREE.CTMLoader( renderer.context );
-	    loader.load( "resources/path.ctm", function( geometry ){
-
-
-	        roadMesh = new THREE.Mesh( geometry, roadTest );
-
-	        roadMesh.position.set(-0.5,-0.5,0);
-	        roadMesh.rotation.x = -0.8;
-		    roadMesh.material.depthWrite = false;
-    	postprocessing.scene.add( roadMesh );
-
-	    }, false, true );
-}
-
-function $(id) {
-    return document.getElementById(id).textContent
-}
-
-function onWindowResize( event ) {
-
-    SCREEN_WIDTH = window.innerWidth;
-    SCREEN_HEIGHT = window.innerHeight;
-
-    renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
-
-    camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-    camera.updateProjectionMatrix();
-}
-
-
-function animateStart () {
-    var delta = clock.getDelta();
-	if(typeof roadMesh === "undefined")
-	{
-        requestAnimationFrame(animateStart);
-    	return;
-	}
-
-
-    shaderUniforms.time.value += delta;
-
-
-
-    camera.lookAt( scene.position );
-
-    if (camera.position.y < 2) {
-        requestAnimationFrame(animate);
-    }
-    else {
-        requestAnimationFrame(animateStart);
-        camera.position.y -= 250 * delta;
-    }
-
-    render();
-}
-
-function animate() {
-    var delta = clock.getDelta();
-    requestAnimationFrame( animate );
-    controls.update();
-    //terrainMesh.rotation.z += 0.1 * delta;
-    render();
-}
-
-function render() {
-    var gl = renderer.getContext();
-
-    renderer.clear(true, true, true);
-
-    //Terrain rendern nd Depthbuffer füllen
-
-    renderer.render(scene, camera);
-
-    //Stencilbuffer füllen
-    gl.enable(gl.STENCIL_TEST);
-    gl.stencilFunc(gl.ALWAYS, 0, 0);
-    gl.colorMask(false,false,false,false);
-    roadMesh.material.depthTest = true;
-    gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
-    renderer.setFaceCulling("front");
-    renderer.render(postprocessing.scene, camera);
-
-    gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
-    renderer.setFaceCulling("back");
-    renderer.render(postprocessing.scene, camera);
-    gl.colorMask(true,true,true,true);
-
-    //weg rendern
-    gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
-    renderer.setFaceCulling("front");
-    roadMesh.material.depthTest = false;
-    renderer.render(postprocessing.scene, camera);
-
-    //GL state zurücksetzten
-    gl.disable(gl.STENCIL_TEST);
-    renderer.setFaceCulling("back");
-
-}
-
-function createPath(geometry, len) {
-    geometry.computeBoundingBox();
-    var path = new THREE.Geometry();
-
-    /*
-    var min = geometry.boundingBox.min;
-    var max = geometry.boundingBox.max;
-    var deltaX = max.x - min.x,
-    deltaY = max.y - min.y,
-    deltaZ = 0.5 - min.z;*/
-
-
-    len || (len = 50);//?? wtf
-
-    var i;
-    for (i = 0; i < len; i+=1) {
-        path.vertices.push(
-            geometry.vertices[parseInt(Math.random())]
-            );
-    }
-    path.computeVertexNormals();
-
-    var line = new THREE.Line(path, new THREE.LineBasicMaterial({
-        color : 0xff0000,
-        linewidth: 5,
-        linecap : 'round',
-        linejoin : 'round',
-        vertexColors : false,
-        fog : false
-    }), THREE.LineStrip);
-
-    return line;
-}
+    main = new Main();
+}());
