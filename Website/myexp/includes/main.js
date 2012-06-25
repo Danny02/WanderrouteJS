@@ -5,8 +5,69 @@
     }
 
     var main,
-        Main;
-        
+        Main,
+        SignWindow;
+
+
+    SignWindow = function (id) {
+        this.container = document.getElementById(id);
+
+        this.signType = this.container.querySelector("[name='type']");
+        this.signName = this.container.querySelector("[name='name']");
+        this.signPositionX = this.container.querySelector("[name='x']");
+        this.signPositionY = this.container.querySelector("[name='y']");
+        this.signPositionZ = this.container.querySelector("[name='z']");
+
+        this.ok = this.container.querySelector(".ok");
+        this.cancel = this.container.querySelector(".cancel");
+
+        this.onOk = this.onOk.bind(this);
+
+        this.ok.addEventListener("click", this.onOk, false);
+
+        this.callback = null;
+    };
+
+    SignWindow.init = function (id) {
+        SignWindow = new SignWindow(id);
+    };
+
+    SignWindow.prototype = {
+        show : function (data, callback) {
+            this.signPositionX.value = data.position.x;
+            this.signPositionY.value = data.position.y;
+            this.signPositionZ.value = data.position.z;
+
+            this.callback = callback;
+
+            this.container.classList.add("show");
+        },
+
+        close : function () {
+            this.container.classList.remove("show");
+        },
+
+        onOk : function () {
+            if (this.callback) {
+                this.callback({
+                    name : this.signName.value,
+                    type : this.signType.value,
+                    position : {
+                        x : this.signPositionX.value * 1,
+                        y : this.signPositionY.value * 1,
+                        z : this.signPositionZ.value * 1
+                    }
+                });
+            }
+            this.close();
+        },
+
+        onCancel : function () {
+            this.close();
+        }
+    };
+
+
     Main = function () {
         this.container = null;
 
@@ -22,10 +83,11 @@
 
         this.shaderUniforms = null;
 
-        this.itemsToLoad = 2;
+        this.itemsToLoad = 3;
         this.itemsLoaded = 0;
 
         this.postprocessing = {};
+        this.track = {};
 
         this.clock = new THREE.Clock();
     
@@ -35,6 +97,8 @@
         this.onWindowResize = this.onWindowResize.bind(this);
         this.onMeshLoaded = this.onMeshLoaded.bind(this);
         this.onTrackMashLoaded = this.onTrackMashLoaded.bind(this);
+        this.onTrackJSONLoaded = this.onTrackJSONLoaded.bind(this);
+        this.onCreateSign = this.onCreateSign.bind(this);
 
         this.init();
     };
@@ -47,6 +111,7 @@
             document.body.appendChild(this.container);
 
             scene = this.scene = new THREE.Scene();
+            //scene.add(new THREE.AxisHelper());
 
             this.initCamera(); 
 
@@ -140,20 +205,65 @@
             };
 
             loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/map1.ctm", this.onMeshLoaded, false, true);
+            loader.load("resources/map1.ctm", this.onMeshLoaded, false, false);
 
         },
 
         initPostprocessing : function () {
+            var loader,
+                xhr, callback;
+
+            
+            loader = new THREE.CTMLoader(this.renderer.context);
+            loader.load("resources/path.ctm", this.onTrackMashLoaded, false, true);
+
+            xhr = new XMLHttpRequest();
+            callback = this.onTrackJSONLoaded;
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === xhr.DONE) {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        if (xhr.responseText) {
+                            callback(JSON.parse(xhr.responseText));
+                        }
+                    }
+                }
+            };
+
+            xhr.open("GET", "resources/path.json", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(null);
+        },
+
+        $ : function (id) {
+            return document.getElementById(id);
+        },
+
+        onMeshLoaded : function (geometry) {
+            var shaderMaterial = new THREE.ShaderMaterial({
+                    uniforms : this.shaderUniforms,
+                    vertexShader:   this.$('terrain.vert').textContent,
+                    fragmentShader: this.$('terrain.frag').textContent
+                });
+
+            geometry.computeFaceNormals();
+
+            this.terrainMesh = new THREE.Mesh(geometry, shaderMaterial);
+
+            this.scene.add(this.terrainMesh);
+
+            this.updateLoadCounter();
+        },
+
+        onTrackMashLoaded : function (geometry) {
             var postprocessing = this.postprocessing,
                 options = {
                     minFilter: THREE.LinearFilter,
                     stencilBuffer: false
                 },
                 roadTest,
-                roadMesh,
-                loader;
-
+                roadMesh;
+            
             postprocessing.scene = new THREE.Scene();
 
             postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
@@ -163,38 +273,18 @@
                 fragmentShader: this.$('test.frag').textContent
             });
 
-            loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/path.ctm", this.onTrackMashLoaded, false, true);
-        },
 
-        $ : function (id) {
-            return document.getElementById(id);
-        },
-
-        onMeshLoaded : function (geometry) {
-            //line = createPath(geometry, 50);
-
-            var terrainMesh,
-                shaderMaterial = new THREE.ShaderMaterial({
-                    uniforms : this.shaderUniforms,
-                    vertexShader:   this.$('terrain.vert').textContent,
-                    fragmentShader: this.$('terrain.frag').textContent
-                });
-
-            terrainMesh = this.terrainMesh = new THREE.Mesh(geometry, shaderMaterial);
-
-            terrainMesh.rotation.x = -0.8;
-            this.scene.add(terrainMesh);
+            roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
+            roadMesh.position.set(-0.5, -0.5, 0.0);
+//            roadMesh.rotation.x = -0.8;
+            roadMesh.material.depthWrite = false;
+            this.postprocessing.scene.add(this.roadMesh);
 
             this.updateLoadCounter();
         },
-
-        onTrackMashLoaded : function (geometry) {
-            var roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
-            roadMesh.position.set(-0.5, -0.5, 0);
-            roadMesh.rotation.x = -0.8;
-            roadMesh.material.depthWrite = false;
-            this.postprocessing.scene.add(this.roadMesh);
+        
+        onTrackJSONLoaded : function (geometry) {
+            this.createPath(geometry);
 
             this.updateLoadCounter();
         },
@@ -202,6 +292,7 @@
         updateLoadCounter : function () {
             this.itemsLoaded += 1;
             if (this.itemsLoaded === this.itemsToLoad) {
+//                this.terrainMesh.rotation.x = -0.8;
                 this.clock.start();
                 this.animateStart();
             }
@@ -214,7 +305,10 @@
                 var camera = this.camera,
                     vector = new THREE.Vector3((e.clientX / this.SCREEN_WIDTH) * 2 - 1,
                         - (e.clientY / this.SCREEN_HEIGHT) * 2 + 1,
-                        0.5),
+                        // Percentage of diff between near and far to go towards far
+                        // starting at near to determine intersection.
+                        // @see https://github.com/sinisterchipmunk/jax/blob/5d392c9d67cb9ae5623dc03846027c473f625925/src/jax/webgl/camera.js#L568
+                        0.2),
                     ray,
                     intersects,
                     point, 
@@ -228,14 +322,45 @@
 
                 if (intersects.length > 0) {
                     point = intersects[0].point;
-                    cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
-                    cube.position.x = point.x;
-                    cube.position.y = point.y;
-                    cube.position.z = point.z + 0.1;
 
-                    this.scene.add(cube);
+                    SignWindow.show({
+                        name : "",
+                        type : null,
+                        position: point, 
+                    }, this.onCreateSign);
+
+                }
+                else {
+                    console.log("No intersection found");
                 }
             }
+        },
+
+        onCreateSign : function (data) {
+            console.log(data);
+            var loader = new THREE.ColladaLoader(),
+                material,
+                terrainMesh = this.terrainMesh;
+
+            loader.convertUpAxis = true;
+            loader.load('resources/models/cubicSign_' + data.type + '.dae', function (collada) {
+                //var hlMaterial = new THREE.MeshPhongMaterial({color: 0x750004});
+
+                THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) { 
+                    object.scale.set(0.01, 0.01, 0.01);
+                    object.position.set(data.position.x, data.position.y, data.position.z + 0.05);
+                    /*if (object.material) {
+                        object.material = new THREE.MeshBasicMaterial({ wireframe: true });
+                    }*/
+                    if ((material = object.material)) {
+                        object.material = new THREE.MeshBasicMaterial({
+                            map: material.map, 
+                            morphTargets: material.morphTargets
+                        });
+                    }
+                });
+                terrainMesh.add(collada.scene);
+            });
         },
 
         onWindowResize : function (event) {
@@ -308,30 +433,25 @@
             gl.disable(gl.STENCIL_TEST);
             renderer.setFaceCulling("back");
 
+            renderer.render(this.track, this.camera);
         },
 
-        createPath : function (geometry, len) {
-            geometry.computeBoundingBox();
-            var path = new THREE.Geometry(), i, line;
-
-            /*
-            var min = geometry.boundingBox.min;
-            var max = geometry.boundingBox.max;
-            var deltaX = max.x - min.x,
-            deltaY = max.y - min.y,
-            deltaZ = 0.5 - min.z;*/
-
-
-            len || (len = 50);//?? wtf
+        createPath : function (vertices) {
+            var path = new THREE.Geometry(), vert, i, len = vertices.length, track,
+                options = {
+                    minFilter: THREE.LinearFilter,
+                    stencilBuffer: false
+                };
 
             for (i = 0; i < len; i += 1) {
+                vert = vertices[i];
                 path.vertices.push(
-                    geometry.vertices[parseInt(Math.random(), 10)]
-                    );
+                    new THREE.Vector3(vert[0], vert[1], vert[2]) 
+                );
             }
             path.computeVertexNormals();
 
-            line = new THREE.Line(path, new THREE.LineBasicMaterial({
+            track = new THREE.Line(path, new THREE.LineBasicMaterial({
                 color : 0xff0000,
                 linewidth: 5,
                 linecap : 'round',
@@ -339,12 +459,18 @@
                 vertexColors : false,
                 fog : false
             }), THREE.LineStrip);
+            
+            track.position.set(-0.5, -0.5, 0.2);
+            //track.rotation.x = -0.8;
+            this.track = new THREE.Scene();
 
-            return line;
+            this.track.add(track);
+
         }
     };
 
     main = new Main();
+    SignWindow.init("window-sign");
 }());
 
 
