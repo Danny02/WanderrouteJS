@@ -61,7 +61,7 @@ function init() {
     camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 2000 );
     camera.position.x = 0;
     camera.position.y = 500;
-    camera.position.z = 800;
+    camera.position.z = 3;
     scene.add( camera );
 
 
@@ -139,8 +139,6 @@ function init() {
 
         terrainMesh = new THREE.Mesh( geometry, shaderMaterial );
 
-        terrainMesh.position.set(0, -40, -100);
-        terrainMesh.scale.set(300, 300, 250 );
         terrainMesh.rotation.x = -0.8;
         scene.add( terrainMesh );
 
@@ -163,21 +161,32 @@ function initPostprocessing() {
     };
     postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, options );
 
-    postprocessing.depthOnlyMaterial = new THREE.ShaderMaterial({
+    /*postprocessing.depthOnlyMaterial = new THREE.ShaderMaterial({
         vertexShader:   $('simple.vert'),
         fragmentShader: $('depthSave.frag')
-    });
+    });*/
 
     var roadTest = new THREE.ShaderMaterial({
         vertexShader:   $('simple.vert'),
         fragmentShader: $('test.frag')
     });
 
-    roadMesh = new THREE.Mesh( new THREE.CubeGeometry( 300, 5, 300),
-        roadTest);
-    roadMesh.rotation.x = -0.8;
-    roadMesh.material.depthWrite = false;
-    postprocessing.scene.add( roadMesh );
+    //roadMesh = new THREE.Mesh( new THREE.CubeGeometry( 0.7, 3., 0.7), roadTest);
+
+    //	postprocessing.scene.add( roadMesh );
+
+	 var loader = new THREE.CTMLoader( renderer.context );
+	    loader.load( "resources/path.ctm", function( geometry ){
+
+
+	        roadMesh = new THREE.Mesh( geometry, roadTest );
+
+	        roadMesh.position.set(-0.5,-0.5,0);
+	        roadMesh.rotation.x = -0.8;
+		    roadMesh.material.depthWrite = false;
+    	postprocessing.scene.add( roadMesh );
+
+	    }, false, true );
 }
 
 function $(id) {
@@ -198,6 +207,13 @@ function onWindowResize( event ) {
 
 function animateStart () {
     var delta = clock.getDelta();
+	if(typeof roadMesh === "undefined")
+	{
+        requestAnimationFrame(animateStart);
+    	return;
+	}
+
+
     shaderUniforms.time.value += delta;
 
 
@@ -219,7 +235,7 @@ function animate() {
     var delta = clock.getDelta();
     requestAnimationFrame( animate );
     controls.update();
-    terrainMesh.rotation.z += 0.1 * delta;
+    //terrainMesh.rotation.z += 0.1 * delta;
     render();
 }
 
