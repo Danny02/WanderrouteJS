@@ -2,12 +2,10 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var container;
 
-var camera, scene, renderer, line, projector;
+var camera, scene, renderer, line, projector, controls;
 var terrainMesh;
 
 var shaderUniforms, postprocessing = {};
-
-var mouseX = 0, mouseY = 0;
 
 var clock = new THREE.Clock();
 
@@ -27,18 +25,17 @@ function onDocumentMouseDown( event ) {
 
         var ray = new THREE.Ray( camera.position, vector.subSelf( camera.position ).normalize() );
 
-        var intersects = ray.intersectObject( mesh );
+        var intersects = ray.intersectObject( terrainMesh );
 
         console.log(intersects);
         if ( intersects.length > 0 ) {
-            var point = intersects[0].point,
-            cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
+            var point = intersects[0].point;
+            var cube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshNormalMaterial());
             cube.position.x = point.x;
             cube.position.y = point.y;
             cube.position.z = point.z + 0.1;
 
             scene.add(cube);
-            render();
         }
 
     /*
@@ -132,17 +129,12 @@ function init() {
     var loader = new THREE.CTMLoader( renderer.context );
     loader.load( "resources/map1.ctm", function( geometry ){
 
+        //line = createPath(geometry, 50);
+
         var shaderMaterial = new THREE.ShaderMaterial({
             uniforms : shaderUniforms,
             vertexShader:   $('terrain.vert'),
             fragmentShader: $('terrain.frag')
-        });
-        line = createPath(geometry, 50);
-
-        var shaderMaterial = new THREE.ShaderMaterial({
-            uniforms : shaderUniforms,
-            vertexShader:   $('customVertexshader'),
-            fragmentShader: $('customFragmentshader')
         });
 
         terrainMesh = new THREE.Mesh( geometry, shaderMaterial );
@@ -153,8 +145,9 @@ function init() {
         scene.add( terrainMesh );
 
     }, false, true );
-    clock.start();
     initPostprocessing();
+
+    clock.start();
     animateStart();
 }
 
@@ -163,9 +156,6 @@ var roadMesh;
 function initPostprocessing() {
 
     postprocessing.scene = new THREE.Scene();
-    postprocessing.camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 3000 );
-    postprocessing.camera.position.z = 200;
-    postprocessing.scene.add(postprocessing.camera);
 
     var options = {
         minFilter: THREE.LinearFilter,
@@ -188,7 +178,6 @@ function initPostprocessing() {
     roadMesh.rotation.x = -0.8;
     roadMesh.material.depthWrite = false;
     postprocessing.scene.add( roadMesh );
-
 }
 
 function $(id) {
@@ -204,52 +193,34 @@ function onWindowResize( event ) {
 
     camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
     camera.updateProjectionMatrix();
-
-
-    postprocessing.camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-    postprocessing.camera.updateProjectionMatrix();
 }
-/*
-function onDocumentMouseMove( event ) {
-	var windowHalfX = window.innerWidth / 2;
-	var windowHalfY = window.innerHeight / 2;
 
-	mouseX = ( event.clientX - windowHalfX );
-	mouseY = ( event.clientY - windowHalfY );
-}
-*/
 
 function animateStart () {
     var delta = clock.getDelta();
     shaderUniforms.time.value += delta;
 
 
-    //terrainMesh.rotation.z += 0.1 * delta;
-
-    camera.position.x += ( mouseX - camera.position.x ) * .05;
-    camera.position.y += ( - mouseY - camera.position.y ) * .05;
-
-    postprocessing.camera.position.x += ( mouseX - postprocessing.camera.position.x ) * .05;
-    postprocessing.camera.position.y += ( - mouseY - postprocessing.camera.position.y ) * .05;
 
     camera.lookAt( scene.position );
-    postprocessing.camera.lookAt( scene.position );
 
-    if (camera.position.y <= 2) {
-        controls.addEventListener('change', render);
-        mesh.add( line );
+    if (camera.position.y < 2) {
         requestAnimationFrame(animate);
     }
     else {
         requestAnimationFrame(animateStart);
+        camera.position.y -= 250 * delta;
     }
 
     render();
 }
 
 function animate() {
+    var delta = clock.getDelta();
     requestAnimationFrame( animate );
     controls.update();
+    terrainMesh.rotation.z += 0.1 * delta;
+    render();
 }
 
 function render() {
@@ -268,18 +239,18 @@ function render() {
     roadMesh.material.depthTest = true;
     gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
     renderer.setFaceCulling("front");
-    renderer.render(postprocessing.scene, postprocessing.camera);
+    renderer.render(postprocessing.scene, camera);
 
     gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
     renderer.setFaceCulling("back");
-    renderer.render(postprocessing.scene, postprocessing.camera);
+    renderer.render(postprocessing.scene, camera);
     gl.colorMask(true,true,true,true);
 
     //weg rendern
     gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
     renderer.setFaceCulling("front");
     roadMesh.material.depthTest = false;
-    renderer.render(postprocessing.scene, postprocessing.camera);
+    renderer.render(postprocessing.scene, camera);
 
     //GL state zurücksetzten
     gl.disable(gl.STENCIL_TEST);
@@ -289,27 +260,27 @@ function render() {
 
 function createPath(geometry, len) {
     geometry.computeBoundingBox();
-    var min = geometry.boundingBox.min,
-    max = geometry.boundingBox.max,
-    meshSize = geometry.vertices.length,
-    path = new THREE.Geometry(),
-    line,
-    i = 0,
-    deltaX = max.x - min.x,
+    var path = new THREE.Geometry();
+
+    /*
+    var min = geometry.boundingBox.min;
+    var max = geometry.boundingBox.max;
+    var deltaX = max.x - min.x,
     deltaY = max.y - min.y,
-    deltaZ = 0.5 - min.z;
+    deltaZ = 0.5 - min.z;*/
 
 
-    len || (len = 50);
+    len || (len = 50);//?? wtf
 
+    var i;
     for (i = 0; i < len; i+=1) {
         path.vertices.push(
-            geometry.vertices[parseInt(meshSize * Math.random())]
+            geometry.vertices[parseInt(Math.random())]
             );
     }
     path.computeVertexNormals();
 
-    line = new THREE.Line(path, new THREE.LineBasicMaterial({
+    var line = new THREE.Line(path, new THREE.LineBasicMaterial({
         color : 0xff0000,
         linewidth: 5,
         linecap : 'round',
@@ -317,8 +288,6 @@ function createPath(geometry, len) {
         vertexColors : false,
         fog : false
     }), THREE.LineStrip);
-
-
 
     return line;
 }
