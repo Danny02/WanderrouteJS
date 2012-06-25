@@ -51,7 +51,10 @@ public class PathTraingulator
         Iterator<ImmutableVector<Vector2>> iter = path.getVectorIterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
-            v.setAttribute(pos, vec[0], height.getHeightValue(vec[0], vec[1]), vec[1]);
+            float z = 0f;
+            if(height != null)
+                z = height.getHeightValue(vec[0], vec[1]);
+            v.setAttribute(pos, vec[0], vec[1], z);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }
@@ -235,26 +238,16 @@ public class PathTraingulator
         ImageFrame frame = new ImageFrame(550, 550);
         frame.addImage(image);
 //
-        Mesh m = trian.buildExtrudedPrisma(path, 0.01f, 5);
-
+        Mesh prismaMesh = trian.buildExtrudedPrisma(path, 0.01f, 5);
         try (FileOutputStream out = new FileOutputStream("path.ctm")) {
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
-            writer.writeModel(out, new Model[]{new Model(m, null)});
+            writer.writeModel(out, new Model[]{new Model(prismaMesh, null)});
         }
-
-
-        Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
-        VertexBuffer vb = new VertexBuffer(pos, path.size());
-        for(ImmutableVector<Vector2> v:path.getVectorIterable())
-        {
-            float[] c = v.getCoords();
-            vb.newVertex().setAttribute(pos, c[0], c[1], 0f);
-        }
-
-        Mesh m2 = new Mesh(null, vb, -1);
+        
+        Mesh pathMesh = buildPathMesh(path, null);
         try (FileOutputStream out = new FileOutputStream("path.json")) {
             ModelWriter writer = new PlainJSONModelWriter();
-            writer.writeModel(out, new Model[]{new Model(m2, null)});
+            writer.writeModel(out, new Model[]{new Model(pathMesh, null)});
         }
     }
 }
