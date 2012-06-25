@@ -9,8 +9,75 @@
 			body {
 				background-color: #000;
 				margin: 0px;
-				overflow: hidden;
-			}
+                overflow: hidden;
+                font-family: Arial;
+            }
+
+
+            #window-sign {
+                display: none;
+                border-radius: 1px;
+                position: absolute;
+                width: 400px;
+                height: 300px;
+                background-color: #efefef;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+                top: 20px;
+                right: 20px;
+                z-index: 10;
+                box-sizing: border-box;
+                padding:4px;
+                padding-bottom: 40px;
+            }
+
+            #window-sign.show {
+                display: block;
+            }
+            
+            #window-sign .header {
+                background-color: #dedede;
+            }
+
+            #window-sign .header h2 {
+                margin: 0;
+                padding: 3px 6px;
+            }
+
+            #window-sign .footer {
+                border-top: 1px solid #cdcdcd;
+                background-color: 40px solid #fbfbfb;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 40px;
+                text-align: right;
+                box-sizing: border-box;
+                padding: 10px;
+            }
+
+            button {
+                width: 50px;
+                height: 20px;
+
+            }
+
+            form {
+                padding: 10px;
+            }
+
+            form .row {
+                padding: 4px 0;
+            }
+
+            form .row label {
+                display: inline-block;
+                width: 100px;
+            }
+
+            form input.small {
+                width: 70px;
+            }
 		</style>
 
 	</head>
@@ -18,8 +85,39 @@
 	<body>
 
 		<div id="info">
-			Test Test
-		</div>
+        </div>
+
+        <div id="window-sign">
+            <div class="header">
+                <h2>Sign</h2>
+            </div>
+            <form>
+                <div class="row">
+                    <label>Type:</label>
+                    <select name="type">
+                        <option value="parking">Parking</option>
+                        <option value="toilet">Toilet</option>
+                        <option value="food">Food</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <label>Name:</label>
+                    <input type="text" name="name" />
+                </div>
+                <div class="row">
+                    <label>Position:</label>
+                    <input type="text" class="small" name="x" value="" readonly="true"/>
+                    <input type="text" class="small" name="y" value="" readonly="true"/>
+                    <input type="text" class="small" name="z" value="" readonly="true"/>
+                </div>
+            </form>
+            <div class="footer">
+                <button class="cancel">Cancel</button>
+                <button class="ok">OK</button>
+            </div>
+        </div>
+
+
 		<script type="x-shader/x-vertex" id="simple.vert">
 		    void main(){
 		        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
@@ -122,6 +220,7 @@
 		<script src="includes/Three.js"></script>
 		<script src="includes/ctm.js"></script>
 		<script src="includes/CTMLoader.js"></script>
+		<script src="includes/ColladaLoader.js"></script>
 		<script src="includes/lzma.js"></script>
 		<script src="includes/Detector.js"></script>
 
