@@ -194,7 +194,7 @@
         initEventListeners : function () {
             //document.addEventListener('mousemove', onDocumentMouseMove, false);
             window.addEventListener('resize', this.onWindowResize, false);
-            this.container.addEventListener('mousedown', this.onDocumentMouseDown, false);
+            this.container.addEventListener('mousedown', this.onDocumentMouseDown, true);
             this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
             this.chkShowTrack.addEventListener('change', this.onShowTrackChange, false);
         },
@@ -359,7 +359,7 @@
                 context = canvas.getContext("2d");
                 
                 context.lineWidth = 1;
-                context.strokeStyle = "#aaaaaa";
+                context.strokeStyle = "#555555";
                 context.beginPath();
                 context.moveTo(0, height);
                 context.lineTo(width, height);
