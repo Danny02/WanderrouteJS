@@ -243,8 +243,8 @@ public class PathTraingulator
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
             writer.writeModel(out, new Model[]{new Model(prismaMesh, null)});
         }
-        
-        Mesh pathMesh = buildPathMesh(path, null);
+
+        Mesh pathMesh = trian.buildPathMesh(path, null);
         try (FileOutputStream out = new FileOutputStream("path.json")) {
             ModelWriter writer = new PlainJSONModelWriter();
             writer.writeModel(out, new Model[]{new Model(pathMesh, null)});
