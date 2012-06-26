@@ -99,6 +99,15 @@
         this.onTrackMashLoaded = this.onTrackMashLoaded.bind(this);
         this.onTrackJSONLoaded = this.onTrackJSONLoaded.bind(this);
         this.onCreateSign = this.onCreateSign.bind(this);
+        this.onShowTrackChange = this.onShowTrackChange.bind(this);
+        this.onShowProfileChange = this.onShowProfileChange.bind(this);
+
+        this.chkShowTrack = document.querySelector("[name='show-track']");
+        this.chkShowProfile = document.querySelector("[name='show-profile']");
+
+        this.showTrack = true;
+
+        this.profileCanvas = document.querySelector(".profile");
 
         this.init();
     };
@@ -141,7 +150,7 @@
         },
 
         initControls : function () {
-            var controls = this.controls = new THREE.TrackballControls(this.camera);
+            var controls = this.controls = new THREE.TrackballControls(this.camera, this.container);
             controls.rotateSpeed = 1.0;
             controls.zoomSpeed = 1.2;
             controls.panSpeed = 0.8;
@@ -185,7 +194,21 @@
         initEventListeners : function () {
             //document.addEventListener('mousemove', onDocumentMouseMove, false);
             window.addEventListener('resize', this.onWindowResize, false);
-            document.addEventListener('mousedown', this.onDocumentMouseDown, false);
+            this.container.addEventListener('mousedown', this.onDocumentMouseDown, false);
+            this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
+            this.chkShowTrack.addEventListener('change', this.onShowTrackChange, false);
+        },
+
+        onShowProfileChange : function () {
+            if (this.profileCanvas) {
+                this.profileCanvas.classList.contains("show") ?
+                    this.profileCanvas.classList.remove("show") :
+                    this.profileCanvas.classList.add("show");
+            }
+        },
+
+        onShowTrackChange : function () {
+            this.showTrack = this.chkShowTrack.checked;
         },
 
         initTerrain : function () {
@@ -281,10 +304,90 @@
             this.postprocessing.scene.add(this.roadMesh);
 
             this.updateLoadCounter();
+
+        },
+
+        calculateTrackProfile : function (geometry) {
+        
+            var i = 0, len = geometry.length,
+                distance, completeDistance = 0,
+                current, prev, 
+                profile = [];
+
+            profile.push({
+                distance : 0,
+                height : geometry[0][2]
+            });
+
+            for (i = 1; i < len; i += 1) {
+                prev = geometry[i - 1];
+                current = geometry[i];
+
+                distance = Math.sqrt(Math.pow(current[0] - prev[0], 2) + 
+                                     Math.pow(current[1] - prev[1], 2) + 
+                                     Math.pow(current[2] - prev[2], 2));
+
+                completeDistance += distance;
+
+                profile.push({
+                    distance : completeDistance,
+                    height : current[2]
+                });
+
+            }
+
+            profile.forEach(function (item, index, scope) {
+                scope[index].distance /= completeDistance;
+            });
+
+            this.profile = profile;
+
+            this.renderProfile();
         },
         
+        renderProfile : function () {
+            var canvas = this.profileCanvas,
+                context,
+                profile = this.profile,
+                height,
+                width;
+
+            if (canvas) {
+                height = canvas.height * 0.75;
+                width = canvas.width;
+
+                context = canvas.getContext("2d");
+                
+                context.lineWidth = 1;
+                context.strokeStyle = "#aaaaaa";
+                context.beginPath();
+                context.moveTo(0, height);
+                context.lineTo(width, height);
+                context.stroke();
+                context.closePath();
+
+                context.lineWidth = 2;
+                context.strokeStyle = "#ffffff";
+                context.beginPath();
+
+                profile.forEach(function (item, index, scope) {
+                    if (index === 0) {
+                        context.moveTo(0, height - item.height * height);
+                    } 
+                    else {
+                        context.lineTo(item.distance * width, height - item.height * height);
+                    }
+                });
+
+                context.stroke();
+                context.closePath();
+            }
+        },
+
         onTrackJSONLoaded : function (geometry) {
             this.createPath(geometry);
+
+            this.calculateTrackProfile(geometry);
 
             this.updateLoadCounter();
         },
@@ -343,7 +446,7 @@
                 terrainMesh = this.terrainMesh;
 
             loader.convertUpAxis = true;
-            loader.load('resources/models/cubicSign_' + data.type + '.dae', function (collada) {
+            loader.load('resources/models/' + data.type + '.dae', function (collada) {
                 //var hlMaterial = new THREE.MeshPhongMaterial({color: 0x750004});
 
                 THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) { 
@@ -433,7 +536,9 @@
             gl.disable(gl.STENCIL_TEST);
             renderer.setFaceCulling("back");
 
-            renderer.render(this.track, this.camera);
+            if (this.showTrack) {
+                renderer.render(this.track, this.camera);
+            }
         },
 
         createPath : function (vertices) {

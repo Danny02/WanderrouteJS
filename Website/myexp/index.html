@@ -3,7 +3,8 @@
 	<head>
 		<title>Three.JS.GPUGPU</title>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <meta name="viewport" 
+            content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
 		<style>
 			body {
@@ -16,24 +17,11 @@
 
             #window-sign {
                 display: none;
-                border-radius: 1px;
-                position: absolute;
                 width: 400px;
                 height: 300px;
-                background-color: #efefef;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-                top: 20px;
-                right: 20px;
-                z-index: 10;
-                box-sizing: border-box;
-                padding:4px;
                 padding-bottom: 40px;
             }
-
-            #window-sign.show {
-                display: block;
-            }
-            
+ 
             #window-sign .header {
                 background-color: #dedede;
             }
@@ -66,11 +54,11 @@
                 padding: 10px;
             }
 
-            form .row {
+            .row {
                 padding: 4px 0;
             }
 
-            form .row label {
+            .row label {
                 display: inline-block;
                 width: 100px;
             }
@@ -78,16 +66,64 @@
             form input.small {
                 width: 70px;
             }
+
+            .panel {
+                border-radius: 1px;
+                position: absolute;
+                background-color: #efefef;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+                top: 20px;
+                right: 20px;
+                z-index: 2;
+                box-sizing: border-box;
+                padding:4px;
+            }
+
+            .controls label {
+                width: 200px;
+            }
+
+            .profile {
+                background-color: rgba(255, 255, 255, 0.1);
+                box-shadow: none;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                width: 200px;
+                height: 120px;
+                bottom: 20px;
+                top: auto;
+                right: 20px;
+                display: none;
+            }
+
+            .show {
+                display: block!important;
+            }
 		</style>
 
 	</head>
 
 	<body>
-
 		<div id="info">
         </div>
 
-        <div id="window-sign">
+        <div class="panel controls">
+            <div class="row">
+                <label>
+                    <input type="checkbox" name="show-track" checked />
+                    Show Track
+                </label>
+            </div>
+            <div class="row">
+                <label>
+                    <input type="checkbox" name="show-profile" checked />
+                    Show Profile
+                </label>
+            </div>
+        </div>
+
+        <canvas class="panel profile show" />
+
+        <div class="panel" id="window-sign">
             <div class="header">
                 <h2>Sign</h2>
             </div>
@@ -95,9 +131,10 @@
                 <div class="row">
                     <label>Type:</label>
                     <select name="type">
-                        <option value="parking">Parking</option>
-                        <option value="toilet">Toilet</option>
-                        <option value="food">Food</option>
+                        <option value="cubicSign_parking">Parking</option>
+                        <option value="cubicSign_toilet">Toilet</option>
+                        <option value="cubicSign_food">Food</option>
+                        <!--                        <option value="TestBaum">Tree</option> -->
                     </select>
                 </div>
                 <div class="row">
