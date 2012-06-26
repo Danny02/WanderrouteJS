@@ -17,56 +17,45 @@
 package wanderroutejs.generators;
 
 import com.fmt.gps.data.GpxFileDataAccess;
-import com.fmt.gps.track.TrackPoint;
-import com.fmt.gps.track.TrackSegment;
-import com.fmt.gps.track.Trip;
-import darwin.util.math.base.vector.Vector3;
-import darwin.util.math.composits.Path;
+import com.fmt.gps.track.*;
 import java.awt.Rectangle;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
-import java.nio.channels.NotYetBoundException;
 import java.util.List;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-import wanderroutejs.examples.TrackExample;
+
+import darwin.util.math.base.vector.Vector3;
+import darwin.util.math.composits.Path;
 
 /**
  *
  * @author simonschmidt
  */
-public class TrackGenerator {
-    
-    public static TrackGenerator fromFile(File file) {
-        TrackGenerator generator = null;
-        try {
-            InputStream in = new FileInputStream(file);
-            generator = new TrackGenerator(GpxFileDataAccess.getPoints(in));
-        } catch (FileNotFoundException ex) {
-            System.err.println("File not found: " + file.getPath());
-        }
-        return generator;
-        
+public class TrackGenerator
+{
+    public static TrackGenerator fromFile(File file) throws FileNotFoundException
+    {
+        InputStream in = new FileInputStream(file);
+        return new TrackGenerator(GpxFileDataAccess.getPoints(in));
     }
-    
-    public static TrackGenerator fromURl (URL url) {
-        throw new NotImplementedException();
+
+    public static TrackGenerator fromURl(URL url) throws IOException
+    {
+        return new TrackGenerator(GpxFileDataAccess.getPoints(url.openStream()));
     }
-    
-    
-    private  List<TrackPoint> trackPoints;
-    private  Trip trip;
+    private List<TrackPoint> trackPoints;
+    private Trip trip;
     private Path path;
-    
-    private TrackGenerator (List<TrackPoint> trackPoints) {
+
+    private TrackGenerator(List<TrackPoint> trackPoints)
+    {
         this.trackPoints = trackPoints;
     }
-    
-    public TrackGenerator makeTrip() {
+
+    public TrackGenerator makeTrip()
+    {
         trip = Trip.makeTrip(1, new TrackSegment(trackPoints, TrackSegment.caminarType.undef));
-        
+
         path = new Path<>();
 
         for (TrackPoint p : trip.getPoints()) {
@@ -76,28 +65,29 @@ public class TrackGenerator {
                     p.getElevation() / 100f));
 
         }
-        
+
         return this;
     }
-    
-    public Path getTripAsPath() {
+
+    public Path getTripAsPath()
+    {
         return this.path;
     }
-    
-    public Rectangle getTripBoundingBox() {
+
+    public Rectangle getTripBoundingBox()
+    {
         List<TrackPoint> corners = trip.getMinMaxPoints();
-        int x = (int) ((TrackPoint) corners.get(0)).getLon(),
-            y = (int) ((TrackPoint) corners.get(0)).getLat(),
-            width = (int) ((TrackPoint) corners.get(1)).getLon() + 1 - x,
-            height = (int) ((TrackPoint) corners.get(1)).getLat() + 1 - y;
-        
+        int x = (int) corners.get(0).getLon(),
+                y = (int) corners.get(0).getLat(),
+                width = (int) corners.get(1).getLon() + 1 - x,
+                height = (int) corners.get(1).getLat() + 1 - y;
+
         Rectangle box = new Rectangle(
                 Math.abs(x),
                 Math.abs(y),
                 Math.abs(width),
-                Math.abs(height)
-        );
-        
+                Math.abs(height));
+
         return box;
     }
 }

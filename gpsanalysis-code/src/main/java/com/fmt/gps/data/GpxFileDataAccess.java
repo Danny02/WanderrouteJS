@@ -1,29 +1,12 @@
 package com.fmt.gps.data;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import com.fmt.gps.track.*;
+import java.io.*;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import java.util.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-
-import com.fmt.gps.track.Distance;
-import com.fmt.gps.track.TrackPoint;
-import com.fmt.gps.track.TrackSegment;
-import com.fmt.gps.track.Trip;
 
 public class GpxFileDataAccess
 {
@@ -39,28 +22,28 @@ public class GpxFileDataAccess
      * @param diary always false: used to augment data
      * <p/>
      * @return GPX XML String
-	 *
+     * <p/>
      */
     public static String makeGpxXml(Trip trip, boolean diary)
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
         buf.append("<?xml-stylesheet type=\"text/xsl\" href=\"details.xsl\"?>\n");
         buf.append("<gpx version=\"1.1\" creator=\"GpsDiary\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:topografix=\"http://www.topografix.com/GPX/Private/TopoGrafix/0/1\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.topografix.com/GPX/Private/TopoGrafix/0/1 http://www.topografix.com/GPX/Private/TopoGrafix/0/1/topografix.xsd\">\n");
         buf.append("<trk>\n");
         buf.append("<desc><![CDATA[]]></desc>\n");
-        buf.append("<number>" + trip.getNumberOfPoints() + "</number>\n");
+        buf.append("<number>").append(trip.getNumberOfPoints()).append("</number>\n");
         buf.append("<extensions><topografix:color>c0c0c0</topografix:color></extensions>\n");
         for (TrackSegment seg : trip.getSegments()) {
             buf.append("\t<trkseg>\n");
             if (diary) {
-                buf.append("\t<type>" + seg.getType().name() + "</type>\n");
+                buf.append("\t<type>").append(seg.getType().name()).append("</type>\n");
 
             }
             for (TrackPoint pt : seg.points) {
-                buf.append("\t\t<trkpt lat=\"" + pt.getLat() + "\" lon=\"" + pt.getLon() + "\">\n");
-                buf.append("\t\t<ele>" + ELEVATION + "</ele>\n");
-                buf.append("\t\t<time>" + Distance.getGpxDateFormatter().format(pt.getTime()) + "</time>\n");
+                buf.append("\t\t<trkpt lat=\"").append(pt.getLat()).append("\" lon=\"").append(pt.getLon()).append("\">\n");
+                buf.append("\t\t<ele>").append(ELEVATION).append("</ele>\n");
+                buf.append("\t\t<time>").append(Distance.getGpxDateFormatter().format(pt.getTime())).append("</time>\n");
                 buf.append("\t\t</trkpt>\n");
             }
             buf.append("\t</trkseg>\n");
@@ -77,7 +60,7 @@ public class GpxFileDataAccess
      * @param gpxFile which file
      * <p/>
      * @return FileOutputStream to file
-	 *
+     * <p/>
      */
     public static FileOutputStream getFileOutputStream(File gpxFile)
     {
@@ -97,7 +80,7 @@ public class GpxFileDataAccess
      * @param is InputStream to GPX data
      * <p/>
      * @return List of all TrackPoints in file
-	 *
+     * <p/>
      */
     public static List<TrackPoint> getPoints(InputStream is)
     {
@@ -113,7 +96,7 @@ public class GpxFileDataAccess
 
             //System.out.println(items.getLength());
 
-            points = new ArrayList<TrackPoint>();
+            points = new ArrayList<>();
 
             //extract data into Point
             for (int j = 0; j < items.getLength(); j += 1) {
@@ -170,7 +153,7 @@ public class GpxFileDataAccess
      * @param gpxFile xml file
      * <p/>
      * @return populated Trip object
-	 *
+     * <p/>
      */
     public static Trip getDiary(InputStream gpxFile)
     {
@@ -195,7 +178,7 @@ public class GpxFileDataAccess
                 final Node xmlSeg = xmlTrksegs.item(j);
                 final NamedNodeMap attrs = xmlSeg.getAttributes();
                 final NodeList trksegChildren = xmlSeg.getChildNodes();
-                final List<TrackPoint> pts = new ArrayList<TrackPoint>();
+                final List<TrackPoint> pts = new ArrayList<>();
                 TrackSegment.caminarType segType = TrackSegment.caminarType.undef;
                 String textDescription = null;
 
