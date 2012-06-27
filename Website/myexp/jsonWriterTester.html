@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<body>
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+
+	<script type="text/javascript">
+
+		function createJsonFile() {
+
+			var path = "TestJSON.json";
+
+			// Making jsonObject
+            var jsonObject = {
+                "numbs" : [],
+                "nombs" : []
+            };
+
+            for ( var index = 0; index < 5; index++) {
+                jsonObject.numbs[index] = 100 + Math.random()*10;
+            }
+
+            // write routes to JSON Object
+            for ( var index = 0; index < 5; index++) {
+                jsonObject.nombs[index] = Math.random();
+            }
+
+
+            // jQuery stuff
+            $.ajax({
+                type : "POST",
+                url : "includes/jsonWriter.php",
+                dataType : 'json',
+                data : {
+                    json : jsonObject,
+                    p : path
+                }
+            });
+    	};
+
+    	createJsonFile();
+
+	</script>
+
+	<div id="ajaxcontent"></div>
+</body>
+</html>
