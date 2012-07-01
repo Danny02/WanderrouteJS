@@ -20,6 +20,7 @@ import java.awt.Rectangle;
 import java.awt.image.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.logging.*;
 import wanderroutejs.datasources.*;
 import wanderroutejs.generators.*;
 import wanderroutejs.heighmapgeneration.*;
@@ -36,43 +37,36 @@ import darwin.util.math.composits.Path;
  */
 public class TrackExample
 {
-    private TrackGenerator trackGenerator;
-
     private SRTMGenerator srtmGenerator;
-
     private int tessFactor = 100;
 
-    public TrackExample(int tessFactor) {
+    public TrackExample(int tessFactor)
+    {
         this.tessFactor = tessFactor;
-
-
-
     }
 
-    public void generate () {
-        trackGenerator = TrackGenerator.fromFile(new File("/examples/untreusee-1206956.gpx"));
+    public void generate()
+    {
+        TrackGenerator trackGenerator = null;
+        try {
+            trackGenerator = TrackGenerator.fromFile("/examples/untreusee-1206956.gpx");
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        }
 
-        Path path = trackGenerator.makeTrip()
-                .getTripAsPath();
+        Path path = trackGenerator.makeTrip().getTripAsPath();
 
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
 
 
-
-
         srtmGenerator = new SRTMGenerator();
 
-        ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox)
-                .loadSRTMFiles("srtm/")
-                .getFiles();
-
-
+        ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox).loadSRTMFiles("srtm/").getFiles();
 
         // render SRTM to heightmap, normalmap,...
         try {
             this.generateMaps(files);
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
@@ -93,13 +87,15 @@ public class TrackExample
         trackExample.generate();
     }
 
-    private void generateMaps(ArrayList<String> files) throws IOException {
-        for(String file : files) {
+    private void generateMaps(ArrayList<String> files) throws IOException
+    {
+        for (String file : files) {
             this.generateMaps(file);
         }
     }
 
-    private void generateMaps(String file) throws IOException {
+    private void generateMaps(String file) throws IOException
+    {
         long time;
 
         System.out.println("Start loading heightmap texture ...");
@@ -123,8 +119,7 @@ public class TrackExample
         time = System.currentTimeMillis();
         try {
             this.saveMesh(mesh, file);
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         System.out.println("\tFinished writing in " + (System.currentTimeMillis() - time));
@@ -137,7 +132,8 @@ public class TrackExample
 
     }
 
-    private BufferedImage generateAmbientOcclusionMap(BufferedImage img) {
+    private BufferedImage generateAmbientOcclusionMap(BufferedImage img)
+    {
         int scale = 512;
         BufferedImage img2 = new BufferedImage(scale, scale, img.getType());
         BufferedImage low = ImageUtil2.getScaledImage(img, scale, scale, false);
@@ -151,8 +147,9 @@ public class TrackExample
         return ao;
     }
 
-
-    private Model generateMesh(BufferedImage img, BufferedImage ambientOcclusionImg){
+    private Model generateMesh(BufferedImage img,
+                               BufferedImage ambientOcclusionImg)
+    {
         HeightSource ambient = new HeightMapSource(ambientOcclusionImg, tessFactor * 3, 1f / 255);
         HeightmapGenerator generator = new GridHeightmap(tessFactor, ambient);
         HeightSource source = new HeightMapSource(img, tessFactor * 3, 1f / 4500);
@@ -163,14 +160,16 @@ public class TrackExample
         return m;
     }
 
-    private void saveMesh(Model mesh, String fileName) throws FileNotFoundException, IOException {
+    private void saveMesh(Model mesh, String fileName) throws FileNotFoundException, IOException
+    {
         try (OutputStream out = new FileOutputStream(fileName + ".ctm");) {
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
             writer.writeModel(out, new Model[]{mesh});
         }
     }
 
-    private void generateNormalMap(BufferedImage img) {
+    private void generateNormalMap(BufferedImage img)
+    {
         BufferedImage normal = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         new NormalGeneratorOp().filter(img, normal);
 
@@ -191,6 +190,4 @@ public class TrackExample
         frame.addImage(adjustedHeight);
         frame.addImage(ao);
     }
-
-
 }
