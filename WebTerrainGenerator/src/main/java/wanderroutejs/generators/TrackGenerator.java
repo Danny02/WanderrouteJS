@@ -22,6 +22,7 @@ import java.awt.Rectangle;
 import java.io.*;
 import java.net.URL;
 import java.util.List;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import darwin.util.math.base.vector.Vector3;
 import darwin.util.math.composits.Path;
@@ -30,13 +31,30 @@ import darwin.util.math.composits.Path;
  *
  * @author simonschmidt
  */
+<<<<<<< HEAD
+public class TrackGenerator {
+    
+    public static TrackGenerator fromFile(File file) {
+        TrackGenerator generator = null;
+        try {
+            InputStream in = new FileInputStream(file);
+            generator = TrackGenerator.fromStream(in);
+        } catch (FileNotFoundException ex) {
+            System.err.println("File not found: " + file.getPath());
+        }
+        return generator;
+        
+    }
+	
+	public static TrackGenerator fromStream(InputStream stream) {
+        return new TrackGenerator(GpxFileDataAccess.getPoints(stream));        
+    }
+    
+    public static TrackGenerator fromURl (URL url) {
+        throw new NotImplementedException();
+=======
 public class TrackGenerator
 {
-    public static TrackGenerator fromFile(String file) throws FileNotFoundException
-    {
-        return fromFile(new File(file));
-    }
-
     public static TrackGenerator fromFile(File file) throws FileNotFoundException
     {
         InputStream in = new FileInputStream(file);
@@ -46,6 +64,7 @@ public class TrackGenerator
     public static TrackGenerator fromURl(URL url) throws IOException
     {
         return new TrackGenerator(GpxFileDataAccess.getPoints(url.openStream()));
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
     }
     private List<TrackPoint> trackPoints;
     private Trip trip;
@@ -81,11 +100,20 @@ public class TrackGenerator
     public Rectangle getTripBoundingBox()
     {
         List<TrackPoint> corners = trip.getMinMaxPoints();
+<<<<<<< HEAD
+		
+        int x = (int) ((TrackPoint) corners.get(0)).getLon(),
+            y = (int) ((TrackPoint) corners.get(0)).getLat(),
+            width = (int) ((TrackPoint) corners.get(1)).getLon() + 1 - x,
+            height = (int) ((TrackPoint) corners.get(1)).getLat() + 1 - y;
+        
+=======
         int x = (int) corners.get(0).getLon(),
                 y = (int) corners.get(0).getLat(),
                 width = (int) corners.get(1).getLon() + 1 - x,
                 height = (int) corners.get(1).getLat() + 1 - y;
 
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
         Rectangle box = new Rectangle(
                 Math.abs(x),
                 Math.abs(y),

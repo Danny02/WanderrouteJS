@@ -20,7 +20,6 @@ import java.awt.Rectangle;
 import java.awt.image.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.logging.*;
 import wanderroutejs.datasources.*;
 import wanderroutejs.generators.*;
 import wanderroutejs.heighmapgeneration.*;
@@ -37,36 +36,66 @@ import darwin.util.math.composits.Path;
  */
 public class TrackExample
 {
+    private TrackGenerator trackGenerator;
+
     private SRTMGenerator srtmGenerator;
+
     private int tessFactor = 100;
 
-    public TrackExample(int tessFactor)
-    {
+    public TrackExample(int tessFactor) {
         this.tessFactor = tessFactor;
+
+
+
     }
 
-    public void generate()
-    {
-        TrackGenerator trackGenerator = null;
-        try {
-            trackGenerator = TrackGenerator.fromFile("/examples/untreusee-1206956.gpx");
-        } catch (FileNotFoundException ex) {
-            ex.printStackTrace();
-        }
+    public void generate () {
+<<<<<<< HEAD
+		InputStream in = TrackExample.class.getResourceAsStream("/examples/untreusee-1206956.gpx");
+        trackGenerator = TrackGenerator.fromStream(in);
+        
+=======
+        trackGenerator = TrackGenerator.fromFile(new File("/examples/untreusee-1206956.gpx"));
 
-        Path path = trackGenerator.makeTrip().getTripAsPath();
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
+        Path path = trackGenerator.makeTrip()
+                .getTripAsPath();
 
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
+<<<<<<< HEAD
+        System.out.printf("Getting data for rectangle: (%d, %d) and (%d, %d)\n", boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
+        
+        
+        srtmGenerator = new SRTMGenerator();
+		try{
+			String outputPath = TrackExample.class.getResource("/srtm/").toString().replace("file:", "");
+			System.out.println("Working on directory: " + outputPath);
+			ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox)
+					.loadSRTMFiles(outputPath)
+					.getFileNames();
+		
+				
+			// render SRTM to heightmap, normalmap,...
+			System.out.println("Generating maps.");
+=======
+
+
 
 
         srtmGenerator = new SRTMGenerator();
 
-        ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox).loadSRTMFiles("srtm/").getFiles();
+        ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox)
+                .loadSRTMFiles("srtm/")
+                .getFiles();
+
+
 
         // render SRTM to heightmap, normalmap,...
         try {
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
             this.generateMaps(files);
-        } catch (Exception ex) {
+        }
+        catch(Exception ex) {
             ex.printStackTrace();
         }
 
@@ -87,23 +116,30 @@ public class TrackExample
         trackExample.generate();
     }
 
-    private void generateMaps(ArrayList<String> files) throws IOException
-    {
-        for (String file : files) {
+    private void generateMaps(ArrayList<String> files) throws IOException {
+        for(String file : files) {
             this.generateMaps(file);
         }
     }
 
-    private void generateMaps(String file) throws IOException
-    {
+    private void generateMaps(String file) throws IOException {
         long time;
+<<<<<<< HEAD
+        
+        System.out.println("Start loading heightmap texture for " + file + "...");
+=======
 
         System.out.println("Start loading heightmap texture ...");
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
         time = System.currentTimeMillis();
-        BufferedImage img = ImageUtil2.loadImage(file);
+        BufferedImage img = ImageUtil2.loadImage("/srtm/" + file);
         System.out.println("\tFinished loading in " + (System.currentTimeMillis() - time));
 
+<<<<<<< HEAD
+      
+=======
 
+>>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
         System.out.println("Generating ambient occlusion map ...");
         time = System.currentTimeMillis();
         BufferedImage ambientOcclusionImg = this.generateAmbientOcclusionMap(img);
@@ -119,7 +155,8 @@ public class TrackExample
         time = System.currentTimeMillis();
         try {
             this.saveMesh(mesh, file);
-        } catch (Exception ex) {
+        }
+        catch(Exception ex) {
             ex.printStackTrace();
         }
         System.out.println("\tFinished writing in " + (System.currentTimeMillis() - time));
@@ -132,8 +169,7 @@ public class TrackExample
 
     }
 
-    private BufferedImage generateAmbientOcclusionMap(BufferedImage img)
-    {
+    private BufferedImage generateAmbientOcclusionMap(BufferedImage img) {
         int scale = 512;
         BufferedImage img2 = new BufferedImage(scale, scale, img.getType());
         BufferedImage low = ImageUtil2.getScaledImage(img, scale, scale, false);
@@ -147,9 +183,8 @@ public class TrackExample
         return ao;
     }
 
-    private Model generateMesh(BufferedImage img,
-                               BufferedImage ambientOcclusionImg)
-    {
+
+    private Model generateMesh(BufferedImage img, BufferedImage ambientOcclusionImg){
         HeightSource ambient = new HeightMapSource(ambientOcclusionImg, tessFactor * 3, 1f / 255);
         HeightmapGenerator generator = new GridHeightmap(tessFactor, ambient);
         HeightSource source = new HeightMapSource(img, tessFactor * 3, 1f / 4500);
@@ -160,16 +195,14 @@ public class TrackExample
         return m;
     }
 
-    private void saveMesh(Model mesh, String fileName) throws FileNotFoundException, IOException
-    {
+    private void saveMesh(Model mesh, String fileName) throws FileNotFoundException, IOException {
         try (OutputStream out = new FileOutputStream(fileName + ".ctm");) {
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
             writer.writeModel(out, new Model[]{mesh});
         }
     }
 
-    private void generateNormalMap(BufferedImage img)
-    {
+    private void generateNormalMap(BufferedImage img) {
         BufferedImage normal = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
         new NormalGeneratorOp().filter(img, normal);
 
@@ -190,4 +223,6 @@ public class TrackExample
         frame.addImage(adjustedHeight);
         frame.addImage(ao);
     }
+
+
 }
