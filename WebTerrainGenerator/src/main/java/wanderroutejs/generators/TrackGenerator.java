@@ -22,7 +22,6 @@ import java.awt.Rectangle;
 import java.io.*;
 import java.net.URL;
 import java.util.List;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import darwin.util.math.base.vector.Vector3;
 import darwin.util.math.composits.Path;
@@ -33,6 +32,11 @@ import darwin.util.math.composits.Path;
  */
 public class TrackGenerator
 {
+    public static TrackGenerator fromFile(String file) throws FileNotFoundException
+    {
+        return fromFile(new File(file));
+    }
+
     public static TrackGenerator fromFile(File file) throws FileNotFoundException
     {
         InputStream in = new FileInputStream(file);

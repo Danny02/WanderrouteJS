@@ -18,6 +18,7 @@ package wanderroutejs.io;
 
 import java.io.*;
 
+import darwin.annotations.ServiceProvider;
 import darwin.geometrie.data.*;
 import darwin.geometrie.io.ModelWriter;
 import darwin.geometrie.unpacked.*;
@@ -26,6 +27,8 @@ import darwin.geometrie.unpacked.*;
  *
  * @author daniel
  */
+@ServiceProvider(ModelWriter.class)
+//TODO mit ner json lib ersetzten
 public class PlainJSONModelWriter implements ModelWriter {
 
     @Override
@@ -33,12 +36,12 @@ public class PlainJSONModelWriter implements ModelWriter {
         if (model.length != 1) {
             throw new IllegalArgumentException("Can only export a single Model!");
         }
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder('{');
 
         Mesh m = model[0].getMesh();
         int[] indice = m.getIndicies();
         if (indice != null) {
-            builder.append("var index = ");
+            builder.append("index = ");
             builder.append("[");
             for (int i = 0; i < indice.length; i++) {
                 builder.append(indice[i]);
@@ -51,7 +54,7 @@ public class PlainJSONModelWriter implements ModelWriter {
 
         VertexBuffer vbuffer = m.getVertices();
         for (Element ele : vbuffer.layout.getElements()) {
-            builder.append("var ").append(ele.getBezeichnung()).append(" = ");
+            builder.append(ele.getBezeichnung()).append(" = ");
 
             builder.append("[");
             for (Vertex v : vbuffer) {
@@ -67,12 +70,12 @@ public class PlainJSONModelWriter implements ModelWriter {
             }
             builder.append("];\n");
         }
-
+        builder.append('}');
         out.write(builder.toString().getBytes());
     }
 
     @Override
     public String getDefaultFileExtension() {
-        return "json";
+        return PlainJSONModelReader.FILE_EXTENSION;
     }
 }
