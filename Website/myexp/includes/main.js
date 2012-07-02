@@ -1,5 +1,5 @@
 /*global THREE, Detector */
-(function () {
+(function (global, doc) {
     if (!Detector.webgl) {
         Detector.addGetWebGLMessage();
     }
@@ -90,6 +90,7 @@
         this.track = {};
 
         this.clock = new THREE.Clock();
+
     
         this.animate = this.animate.bind(this);
         this.animateStart = this.animateStart.bind(this);
@@ -101,6 +102,8 @@
         this.onCreateSign = this.onCreateSign.bind(this);
         this.onShowTrackChange = this.onShowTrackChange.bind(this);
         this.onShowProfileChange = this.onShowProfileChange.bind(this);
+        this.displaySign = this.displaySign.bind(this);
+        this.initSigns = this.initSigns.bind(this);
 
         this.chkShowTrack = document.querySelector("[name='show-track']");
         this.chkShowProfile = document.querySelector("[name='show-profile']");
@@ -114,7 +117,7 @@
 
     Main.prototype = {
         init : function () {
-            var scene, projector;
+            var scene, projector, that = this;
 
             this.container = document.createElement('div');
             document.body.appendChild(this.container);
@@ -137,12 +140,28 @@
 
             this.initEventListeners();
 
+            $.get("includes/signs.json", this.initSigns);
 
+        },
+
+        initSigns : function (signs) {
+            var that = this;
+            if (this.terrainMesh !== null) {
+                signs.forEach(this.displaySign);
+            }
+            else {
+                window.setTimeout(function () {
+                    that.initSigns(signs);
+                }, 500);
+            }
         },
 
         initCamera : function () {
             //camera
-            var camera = this.camera = new THREE.PerspectiveCamera(20, this.SCREEN_WIDTH / this.SCREEN_HEIGHT, 1, 2000);
+            var camera = this.camera = new THREE.PerspectiveCamera(20, 
+                                                                   this.SCREEN_WIDTH / this.SCREEN_HEIGHT, 
+                                                                   1, 
+                                                                   2000);
             camera.position.x = 0;
             camera.position.y = 500;
             camera.position.z = 3;
@@ -286,7 +305,7 @@
                 },
                 roadTest,
                 roadMesh;
-            
+
             postprocessing.scene = new THREE.Scene();
 
             postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
@@ -312,7 +331,8 @@
             var i = 0, len = geometry.length,
                 distance, completeDistance = 0,
                 current, prev, 
-                profile = [];
+                profile = [],
+                maxHeight = geometry[0][1];
 
             profile.push({
                 distance : 0,
@@ -322,6 +342,10 @@
             for (i = 1; i < len; i += 1) {
                 prev = geometry[i - 1];
                 current = geometry[i];
+
+                if (current[1] > maxHeight) {
+                    maxHeight = current[1];
+                }
 
                 distance = Math.sqrt(Math.pow(current[0] - prev[0], 2) + 
                                      Math.pow(current[1] - prev[1], 2) + 
@@ -338,6 +362,7 @@
 
             profile.forEach(function (item, index, scope) {
                 scope[index].distance /= completeDistance;
+                scope[index].height /= maxHeight;
             });
 
             this.profile = profile;
@@ -371,6 +396,7 @@
                 context.beginPath();
 
                 profile.forEach(function (item, index, scope) {
+                    console.log(item.distance, item.height);
                     if (index === 0) {
                         context.moveTo(0, height - item.height * height);
                     } 
@@ -440,7 +466,19 @@
         },
 
         onCreateSign : function (data) {
-            console.log(data);
+            $.ajax({
+                type : "POST",
+                url : "includes/jsonWriter.php",
+                dataType : 'json',
+                data : {
+                    json : data,
+                    p : "signs.json"
+                }
+            });
+            this.displaySign(data);
+        },
+
+        displaySign : function (data) {
             var loader = new THREE.ColladaLoader(),
                 material,
                 terrainMesh = this.terrainMesh;
@@ -464,6 +502,7 @@
                 });
                 terrainMesh.add(collada.scene);
             });
+
         },
 
         onWindowResize : function (event) {
@@ -497,7 +536,10 @@
         animate : function () {
             var delta = this.clock.getDelta();
             this.controls.update();
-            this.terrainMesh.rotation.z += 0.1 * delta;
+            //this.terrainMesh.rotation.z += 0.1 * delta;
+            
+
+            //
             this.render();
             window.requestAnimationFrame(this.animate);
         },
@@ -565,7 +607,7 @@
                 fog : false
             }), THREE.LineStrip);
             
-            track.position.set(-0.5, -0.5, 0.2);
+            track.position.set(-0.5, -0.5, 0.1);
             //track.rotation.x = -0.8;
             this.track = new THREE.Scene();
 
@@ -576,6 +618,7 @@
 
     main = new Main();
     SignWindow.init("window-sign");
-}());
+
+}(window, document));
 
 

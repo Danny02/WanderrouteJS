@@ -16,6 +16,8 @@ import com.fmt.gps.track.Distance;
 import com.fmt.gps.track.TrackPoint;
 import com.fmt.gps.track.TrackSegment;
 import com.fmt.gps.track.Trip;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 public class GpsTest extends junit.framework.TestCase {
 	private static final File TEST_GPX_FILE= new File("./track.gpx");
@@ -28,8 +30,8 @@ public class GpsTest extends junit.framework.TestCase {
 	}
 	
 	@Before 
-	protected void setUp() {
-		points= GpxFileDataAccess.getPoints(TEST_GPX_FILE);
+	protected void setUp() throws FileNotFoundException {
+		points= GpxFileDataAccess.getPoints(new FileInputStream(TEST_GPX_FILE));
 		
 		logBuf= new StringBuffer();
 		log = new Formatter(logBuf, Locale.US);
@@ -48,26 +50,26 @@ public class GpsTest extends junit.framework.TestCase {
 	}
 	
 	@Test
-	public void testTrip() {
-		final List<TrackPoint> points= GpxFileDataAccess.getPoints(Travelog.GPX_FILE);
+	public void testTrip() throws FileNotFoundException {
+		final List<TrackPoint> points= GpxFileDataAccess.getPoints(new FileInputStream(Travelog.GPX_FILE));
 		
 		Trip trip= Trip.makeTrip(9, new TrackSegment(points, TrackSegment.caminarType.undef));
 		//log(String.format("numOfSegs: %d\n", trip.getSegments().size()));
 	}
 	
 	@Test
-	public void testTravelog() {
-		final List<TrackPoint> points= GpxFileDataAccess.getPoints(TEST_GPX_FILE);
+	public void testTravelog() throws FileNotFoundException {
+		final List<TrackPoint> points= GpxFileDataAccess.getPoints(new FileInputStream(TEST_GPX_FILE));
 		
 		Trip.log("\n"+ Travelog.makeNarrative(points, false));
 	}
 	
 	@Test
-	public void testGpxFileDataAccess() {
-		final List<TrackPoint> points= GpxFileDataAccess.getPoints(TEST_GPX_FILE);
+	public void testGpxFileDataAccess() throws FileNotFoundException {
+		final List<TrackPoint> points= GpxFileDataAccess.getPoints(new FileInputStream(TEST_GPX_FILE));
 		
 		//System.out.println("pts: "+ points.size());
-		final Trip trip= GpxFileDataAccess.getDiary(TEST_GPX_FILE);
+		final Trip trip= GpxFileDataAccess.getDiary(new FileInputStream(TEST_GPX_FILE));
 		
 		//System.out.println("pts: "+ trip.getNumberOfPoints());
 	}

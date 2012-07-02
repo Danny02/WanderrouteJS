@@ -3,10 +3,20 @@
    	$json = $_POST['json'];
    	$path = $_POST['p'];
 
-   	$json = json_encode($json);
+    $signs = file_get_contents($path);
 
-	if ($json != null) {
-       	file_put_contents($path, $json);
+    if (empty($signs)) {
+        $signs = array();
+    }
+
+    $signs = json_decode($signs, true);
+
+    $signs[] = $json;
+
+    $signs = json_encode($signs);
+
+    if ($json != null) {
+       	file_put_contents($path, $signs);
     } else {
       	print_r('Couldnt write '.$path);
     }

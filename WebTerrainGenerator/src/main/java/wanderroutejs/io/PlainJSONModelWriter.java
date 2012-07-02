@@ -76,6 +76,6 @@ public class PlainJSONModelWriter implements ModelWriter {
 
     @Override
     public String getDefaultFileExtension() {
-        return PlainJSONModelReader.FILE_EXTENSION;
+        return "json";//PlainJSONModelReader.FILE_EXTENSION;
     }
 }

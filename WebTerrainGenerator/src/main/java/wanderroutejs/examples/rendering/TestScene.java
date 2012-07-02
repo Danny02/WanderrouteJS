@@ -39,7 +39,7 @@ public class TestScene extends BasicScene
     {
     }
 
-    @Override
+    
     public void init(GLAutoDrawable drawable)
     {
         super.init(drawable);
