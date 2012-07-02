@@ -135,5 +135,11 @@
             <artifactId>GPS</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jogamp.jogl</groupId>
+            <artifactId>jogl.all</artifactId>
+            <version>2.0-b45-20111219</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 </project>

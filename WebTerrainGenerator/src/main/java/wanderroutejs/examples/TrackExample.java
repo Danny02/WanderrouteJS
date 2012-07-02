@@ -50,19 +50,16 @@ public class TrackExample
     }
 
     public void generate () {
-<<<<<<< HEAD
+
 		InputStream in = TrackExample.class.getResourceAsStream("/examples/untreusee-1206956.gpx");
         trackGenerator = TrackGenerator.fromStream(in);
-        
-=======
-        trackGenerator = TrackGenerator.fromFile(new File("/examples/untreusee-1206956.gpx"));
-
->>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
+    
         Path path = trackGenerator.makeTrip()
                 .getTripAsPath();
 
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
-<<<<<<< HEAD
+        
+        
         System.out.printf("Getting data for rectangle: (%d, %d) and (%d, %d)\n", boundingBox.x, boundingBox.y, boundingBox.width, boundingBox.height);
         
         
@@ -77,22 +74,7 @@ public class TrackExample
 				
 			// render SRTM to heightmap, normalmap,...
 			System.out.println("Generating maps.");
-=======
 
-
-
-
-        srtmGenerator = new SRTMGenerator();
-
-        ArrayList<String> files = srtmGenerator.loadRectangle(boundingBox)
-                .loadSRTMFiles("srtm/")
-                .getFiles();
-
-
-
-        // render SRTM to heightmap, normalmap,...
-        try {
->>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
             this.generateMaps(files);
         }
         catch(Exception ex) {
@@ -124,22 +106,13 @@ public class TrackExample
 
     private void generateMaps(String file) throws IOException {
         long time;
-<<<<<<< HEAD
         
         System.out.println("Start loading heightmap texture for " + file + "...");
-=======
-
-        System.out.println("Start loading heightmap texture ...");
->>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
+        
         time = System.currentTimeMillis();
         BufferedImage img = ImageUtil2.loadImage("/srtm/" + file);
         System.out.println("\tFinished loading in " + (System.currentTimeMillis() - time));
 
-<<<<<<< HEAD
-      
-=======
-
->>>>>>> 8a97415a7b047a0bf1d042a4f0090963a0587c58
         System.out.println("Generating ambient occlusion map ...");
         time = System.currentTimeMillis();
         BufferedImage ambientOcclusionImg = this.generateAmbientOcclusionMap(img);
