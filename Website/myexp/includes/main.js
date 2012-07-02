@@ -127,8 +127,6 @@
 
             this.initCamera(); 
 
-            this.initControls();
-
             this.projector = projector = new THREE.Projector();
 
             this.initRenderer(); 
@@ -163,8 +161,8 @@
                                                                    1, 
                                                                    2000);
             camera.position.x = 0;
-            camera.position.y = 500;
-            camera.position.z = 3;
+            camera.position.y = 0
+            camera.position.z = 500;
             this.scene.add(camera);
         },
 
@@ -423,6 +421,7 @@
             if (this.itemsLoaded === this.itemsToLoad) {
 //                this.terrainMesh.rotation.x = -0.8;
                 this.clock.start();
+                this.camera.lookAt(this.scene.position);
                 this.animateStart();
             }
         },
@@ -520,26 +519,23 @@
 
             this.shaderUniforms.time.value += delta;
 
-            this.camera.lookAt(this.scene.position);
-
             this.render();
 
-            if (this.camera.position.y < 2) {
+            if (this.camera.position.z === 2) {
+                this.initControls();
                 window.requestAnimationFrame(this.animate);
             }
             else {
                 window.requestAnimationFrame(this.animateStart);
-                this.camera.position.y -= 250 * delta;
+                this.camera.position.z -= 250 * delta;
+                this.camera.position.z = this.camera.position.z < 2 ? 2 : this.camera.position.z;
             }
         },
 
         animate : function () {
-            var delta = this.clock.getDelta();
+            this.clock.stop();
             this.controls.update();
-            //this.terrainMesh.rotation.z += 0.1 * delta;
             
-
-            //
             this.render();
             window.requestAnimationFrame(this.animate);
         },
