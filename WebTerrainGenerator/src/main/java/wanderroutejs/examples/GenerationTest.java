@@ -23,7 +23,7 @@ public class GenerationTest
 
         System.out.println("Start loading heightmap texture ...");
         long time = System.currentTimeMillis();
-        BufferedImage img = ImageUtil2.loadImage("/examples/N50E11.hgt");
+        BufferedImage img = ImageUtil2.loadImage(GenerationTest.class.getResource("/examples/N50E011.hgt"));
         System.out.println("\tFinished loading in " + (System.currentTimeMillis() - time));
 
 

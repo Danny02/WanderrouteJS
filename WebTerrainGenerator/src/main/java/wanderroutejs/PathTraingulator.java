@@ -52,8 +52,9 @@ public class PathTraingulator
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
             float z = 0f;
-            if(height != null)
+            if (height != null) {
                 z = height.getHeightValue(vec[0], vec[1]);
+            }
             v.setAttribute(pos, vec[0], vec[1], z);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
@@ -113,11 +114,11 @@ public class PathTraingulator
             int bl = pathVertCount - i - 1;
             int tl = pathVertCount - i - 2;
             int offset = wallOffset + i * 12;
-                tmp = triangulate(tl * 2, bl * 2, tr * 2, br * 2);
-                System.arraycopy(tmp, 0, indices, offset, 6);
+            tmp = triangulate(tl * 2, bl * 2, tr * 2, br * 2);
+            System.arraycopy(tmp, 0, indices, offset, 6);
 
-                tmp = triangulate(tl * 2 + 1, bl * 2 + 1, tr * 2 + 1, br * 2 + 1);
-                System.arraycopy(tmp, 0, indices, offset+6, 6);
+            tmp = triangulate(tl * 2 + 1, bl * 2 + 1, tr * 2 + 1, br * 2 + 1);
+            System.arraycopy(tmp, 0, indices, offset + 6, 6);
 
         }
 

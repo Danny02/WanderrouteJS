@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Iterator;
 import javax.imageio.*;
 import javax.imageio.stream.ImageInputStream;
@@ -31,28 +32,29 @@ import javax.imageio.stream.ImageInputStream;
  */
 public class ImageUtil2 {
 
-    public static BufferedImage loadImage(String fileName) throws IOException {
+    public static BufferedImage loadImage(URL file) throws IOException {
+        String fileName = file.getFile();
         int suffixPos = fileName.lastIndexOf('.');
         if (suffixPos == -1 || suffixPos == fileName.length() - 1) {
             throw new IOException("Could not extract a file suffix from the following filepath: " + fileName);
         }
 
-        return loadImage(fileName, fileName.substring(suffixPos + 1));
+        return loadImage(file, fileName.substring(suffixPos + 1));
     }
 
-    public static BufferedImage loadImage(String fileName, String fileSuffix) throws IOException {
+    public static BufferedImage loadImage(URL file, String fileSuffix) throws IOException {
         for (Iterator<ImageReader> it = ImageIO.getImageReadersBySuffix(fileSuffix); it.hasNext();) {
             ImageReader reader = it.next();
-            InputStream in = ImageUtil2.class.getResourceAsStream(fileName);
+            InputStream in = file.openStream();
             if (in == null) {
-                throw new IOException("Could not find file: " + fileName);
+                throw new IOException("Could not find file: " + file);
             }
             try (ImageInputStream ii = ImageIO.createImageInputStream(in);) {
                 reader.setInput(ii);
                 return reader.read(0);
             }
         }
-        throw new IOException("No ImageReader found for the file: " + fileName);
+        throw new IOException("No ImageReader found for the file: " + file);
     }
 
     public static BufferedImage filter(BufferedImage image, BufferedImageOp op) {

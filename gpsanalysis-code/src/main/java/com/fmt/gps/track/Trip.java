@@ -37,21 +37,21 @@ public class Trip {
 	public static double STOP_PLACE;
 	/** state of App. **/
 	//public static enum tripState{gpxOnly, carSetOnly, segsSplit, pointsPopulated, usingDB, usingTrip, tripCompleted, naked};
-	
+
 	/** state of populated Trip object. **/
 	//@JsonIgnore
 	//public Collection<tripState> state= new Vector<tripState>();
-	
+
 	/** All points in trip. **/
 	@JsonIgnore
 	private List<TrackPoint> points= null;
-	
+
 	/** Segments in Trip. **/
 	private List<TrackSegment> segments= new LinkedList<TrackSegment>();
 
 	/** WayPoints in Trip. **/
 	private List<WayPoint> waypoints= new LinkedList<WayPoint>();
-	
+
 	/** Constructor.  Sets trip name to today's date. **/
 	public Trip(int carSetPoint) {
 		this.USE_KM= false;
@@ -61,7 +61,7 @@ public class Trip {
 		this.TIME_PAUSE_SECONDS= 240;
 		this.FPS_SPEED_CHANGE_TOLERANCE= 10;	//5
 	}
-	
+
 	/** Constructor.  Sets trip name to today's date. **/
 	public Trip(int carSetPoint, boolean USE_KM, double MULL_FEET_TOLERANCE, int MULL_SECONDS_TOLERANCE, int FPS_SPEED_CHANGE_TOLERANCE, int TIME_PAUSE_SECONDS, double STOP_PLACE) {
 		this.USE_KM= USE_KM;
@@ -96,7 +96,7 @@ public class Trip {
 		}
 		return pointNum;
 	}
-	
+
 	/**
 	 * Returns first point in Trip.
 	 * @return first point in Trip
@@ -105,7 +105,7 @@ public class Trip {
 	public TrackPoint getFirstPoint() {
 		return segments.get(0).points.get(0);
 	}
-	
+
 	/**
 	 * Returns last point in Trip.
 	 * @return last point in Trip
@@ -114,7 +114,7 @@ public class Trip {
 	public TrackPoint getLastPoint() {
 		return segments.get(segments.size()- 1).points.get(segments.get(segments.size()- 1).points.size()- 1);
 	}
-	
+
 	/**
 	 * Returns all points in trip.
 	 * @return all TrackPoints in entire trip
@@ -127,10 +127,10 @@ public class Trip {
 				points.addAll(ts.points);
 			}
 		}
-		
+
 		return points;
 	}
-	
+
 	/**
 	 * makes a list of TrackSegments, which define the trip logically.
 	 * @param points all points in trip
@@ -143,7 +143,7 @@ public class Trip {
 //		trip.state.add(tripState.gpxOnly);
 //		trip.state.remove(tripState.usingDB);
 //		trip.state.add(tripState.usingTrip);
-		
+
 		//------New split by pauseIndoors/gps point time gap--------------
 //newsplit:
 		log(new Date().toString());
@@ -169,9 +169,9 @@ public class Trip {
 				}
 			}
 		}
-		
+
 //		/Travelog.seeList(pts, name)
-		
+
 		//------New split by stop-mulls--------------
 		log(new Date().toString());
 		debug= 0;
@@ -179,9 +179,9 @@ public class Trip {
 		while(!splittingDone) {
 			splittingDone= true;
 			log(String.format("whileSplittingDone: %d\n", trip.segments.size()));
-			
+
 			for(int k= 0; k < trip.segments.size(); k++) {
-			
+
 				final TrackSegment ts= trip.segments.get(k);
 				//Travelog.seeList(ts.points, "L:"+k);
 				if(ts.isSplitable()) {
@@ -199,7 +199,7 @@ public class Trip {
 				}
 			}
 		}
-		
+
 		//------New split by speed-changes--------------
 		log(new Date().toString());
 		debug= 0;
@@ -207,9 +207,9 @@ public class Trip {
 		while(!splittingDone) {
 			splittingDone= true;
 			log(String.format("swhileSplittingDone: %d\n", trip.segments.size()));
-			
+
 			for(int k= 0; k < trip.segments.size(); k++) {
-			
+
 				final TrackSegment ts= trip.segments.get(k);
 				//Travelog.seeList(ts.points, "L:"+k);
 				if(ts.isSplitable()) {
@@ -227,7 +227,7 @@ public class Trip {
 				}
 			}
 		}
-		
+
 		//------removing empty segments-------------------
 		log(new Date().toString());
 		debug= 0;
@@ -235,9 +235,9 @@ public class Trip {
 		while(!splittingDone) {
 			splittingDone= true;
 			log(String.format("swhileSplittingDone: %d\n", trip.segments.size()));
-			
+
 			for(int k= 0; k < trip.segments.size(); k++) {
-			
+
 				final TrackSegment ts= trip.segments.get(k);
 				//Travelog.seeList(ts.points, "L:"+k);
 				if(ts.points.size() == 0) {
@@ -248,7 +248,7 @@ public class Trip {
 				}
 			}
 		}
-		
+
 		//-----set undef segments' types-----
 		log(new Date().toString());
 		for(TrackSegment ts: trip.segments) {
@@ -256,20 +256,20 @@ public class Trip {
 				ts.setType(TrackSegment.setCaminarType(ts.distance, ts.points));
 			}
 		}
-		
+
 		log(new Date().toString());
-		
+
 		//----------End New Splits--------------
 		if(true) return trip;
 		//----------End New Splits--------------
-		
-		
+
+
 		//------Splitting Pauses-------------------
 		List<TrackSegment> segs= null; //TrackSegment.splitListByTimeInterruption(points, Travelog.FPS_SPEED_CHANGE_TOLERANCE);
 		splittingDone= (segs.size() == 0);
-		
+
 		debug= 0;
-		
+
 		while(!splittingDone) {
 			log(String.format("whileSplittingDone: %d\n", debug));
 			if(debug > 5) splittingDone= true;
@@ -277,7 +277,7 @@ public class Trip {
 			for(int s= 0; s < trip.segments.size(); s++) {
 				log(String.format("tripsegs: %d\n", trip.segments.size()));
 				TrackSegment ts= trip.segments.get(s);
-				
+
 				List<TrackSegment> splitSegments= TrackSegment.splitListByTimeInterruption(ts.points, FPS_SPEED_CHANGE_TOLERANCE);
 				if(splitSegments.size() == 0) {
 					//no split
@@ -290,7 +290,7 @@ public class Trip {
 					debug++;
 					break;
 				}
-	
+
 				int tot= 0;
 				for(TrackSegment seg: trip.segments) {
 					tot+= seg.points.size();
@@ -299,18 +299,18 @@ public class Trip {
 				}
 				log(String.format("total: %d\n", tot));
 				//try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace();}
-				
+
 			}
 			if(!splitOccurred)	splittingDone= true;
 		}
-		
+
 		//---------Splitting HangOut/Mulls--------------------------------------------------
 		splittingDone= false;
 		segs= null; //TrackSegment.splitListByMull(points, Travelog.MULL_FEET_TOLERANCE, Travelog.MULL_SECONDS_TOLERANCE);
 		splittingDone= (segs.size() == 0);
-		
+
 		debug= 0;
-		
+
 		while(!splittingDone) {
 			log(String.format("whileSplittingDone: %d\n", debug));
 			if(debug > 5) splittingDone= true;
@@ -318,7 +318,7 @@ public class Trip {
 			for(int s= 0; s < trip.segments.size(); s++) {
 				log(String.format("tripsegs: %d\n", trip.segments.size()));
 				TrackSegment ts= trip.segments.get(s);
-				
+
 				List<TrackSegment> splitSegments= TrackSegment.splitListByMull(ts.points, MULL_FEET_TOLERANCE, MULL_SECONDS_TOLERANCE);
 				if(splitSegments.size() == 0) {
 					//no split
@@ -331,7 +331,7 @@ public class Trip {
 					//debug++;
 					break;
 				}
-	
+
 				int tot= 0;
 				for(TrackSegment seg: trip.segments) {
 					tot+= seg.points.size();
@@ -339,17 +339,17 @@ public class Trip {
 				}
 				log(String.format("total: %d\n", tot));
 				//try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace();}
-				
+
 			}
 			if(!splitOccurred)	splittingDone= true;
 		}
-		
+
 		//---------Splitting Speed Changes--------------------------------------------------
 		segs= null; //TrackSegment.splitListBySpeedChange(points, Travelog.FPS_SPEED_CHANGE_TOLERANCE);
 		splittingDone= (segs.size() == 0);
-		
+
 		debug= 0;
-		
+
 		while(!splittingDone) {
 			log(String.format("whileSplittingDone: %d\n", debug));
 			if(debug > 5) splittingDone= true;
@@ -357,7 +357,7 @@ public class Trip {
 			for(int s= 0; s < trip.segments.size(); s++) {
 				log(String.format("tripsegs: %d\n", trip.segments.size()));
 				TrackSegment ts= trip.segments.get(s);
-				
+
 				List<TrackSegment> splitSegments= TrackSegment.splitListBySpeedChange(ts.points, FPS_SPEED_CHANGE_TOLERANCE);
 				if(splitSegments.size() == 0) {
 					//no split
@@ -369,7 +369,7 @@ public class Trip {
 					debug++;
 					break;
 				}
-	
+
 				int tot= 0;
 				for(TrackSegment seg: trip.segments) {
 					tot+= seg.points.size();
@@ -377,14 +377,14 @@ public class Trip {
 				}
 				log(String.format("total: %d\n", tot));
 				//try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace();}
-				
+
 			}
 			if(!splitOccurred)	splittingDone= true;
 		}
-		
+
 		return trip;
 	}
-	
+
 	/**
 	 * Expands given trip to new date/time.
 	 * @param oldTrip original trip
@@ -394,12 +394,12 @@ public class Trip {
 	 **/
 	public static Trip expandTrip(Trip oldTrip, Date start, Date end) {
 		Trip newTrip= new Trip(-1);
-		
+
 		long delay= start.getTime()- oldTrip.getFirstPoint().getTime().getTime();
 		long newDuration= end.getTime()- start.getTime();
 		long oldDuration= oldTrip.getLastPoint().getTime().getTime()- oldTrip.getFirstPoint().getTime().getTime();
 		long multiplier= newDuration/ oldDuration;
-		
+
 		for(TrackSegment oldSeg: oldTrip.segments) {
 			List<TrackPoint> newPts= new ArrayList<TrackPoint>();
 			for(TrackPoint oldPt: oldSeg.points) {
@@ -409,10 +409,10 @@ public class Trip {
 			}
 			newTrip.segments.add(new TrackSegment(newPts, oldSeg.getType()));
 		}
-		
+
 		return newTrip;
 	}
-	
+
 	/**
 	 * Returns a list of two points containing 2 items: the minimum lat & long and the maximum lat & long.
 	 * @return list of two points containing min and max
@@ -421,21 +421,21 @@ public class Trip {
 		TrackPoint min, max;
 		min= (TrackPoint)segments.get(0).points.get(0).clone();
 		max= (TrackPoint)segments.get(0).points.get(0).clone();
-		
+
 		for(TrackPoint pt: getPoints()) {
 			if(pt.getLat() < min.getLat()) min.setLat(pt.getLat());
 			if(pt.getLat() > max.getLat()) max.setLat(pt.getLat());
-			if(pt.getLon() < min.getLon()) min.setLat(pt.getLon());
-			if(pt.getLon() > max.getLon()) max.setLat(pt.getLon());
+			if(pt.getLon() < min.getLon()) min.setLon(pt.getLon());
+			if(pt.getLon() > max.getLon()) max.setLon(pt.getLon());
 		}
-		
+
 		List<TrackPoint> minMax= new ArrayList<TrackPoint>();
 		minMax.add(min);
 		minMax.add(max);
-		
+
 		return minMax;
 	}
-	
+
 	/**
 	 * @return the segments
 	 */

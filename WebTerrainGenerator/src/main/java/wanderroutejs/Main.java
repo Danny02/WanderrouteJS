@@ -77,7 +77,7 @@ public class Main
     {
         System.out.println("Reading file: " + fileName);
 
-        BufferedImage image = ImageUtil2.loadImage(fileName);
+        BufferedImage image = ImageUtil2.loadImage(new File(fileName).toURI().toURL());
         HeightSource source = new HeightMapSource(image, tesselation, 1f / 6000);
 
         String newFileName;
