@@ -93,6 +93,14 @@
                 top: auto;
                 right: 20px;
                 display: none;
+
+                -webkit-transition: all 0.3s ease-in-out;
+            }
+
+            .profile:hover {
+                background-color: rgba(0, 0, 0, 0.4);
+                width: 1000px;
+                height: 600px;
             }
 
             .show {
@@ -127,7 +135,7 @@
             </div>
         </div>
 
-        <canvas class="panel profile show"></canvas>
+        <canvas width="200" height="120" class="panel profile show"></canvas>
 
         <div class="panel" id="window-sign">
             <div class="header">

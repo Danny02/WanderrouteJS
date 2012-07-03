@@ -6,6 +6,7 @@
 
     var main,
         Main,
+        ProfilePanel,
         SignWindow;
 
 
@@ -67,6 +68,119 @@
         }
     };
 
+    ProfilePanel = function (element) {
+        this.element = element;
+
+        this.render = this.render.bind(this);
+
+        this.element.addEventListener("webkitTransitionEnd", this.render, false);
+        this.element.addEventListener("transitionend", this.render, false);
+        this.element.addEventListener("oTransitionEnd", this.render, false);
+    };
+
+    ProfilePanel.prototype = {
+        toggle : function (show) {
+            this.element.classList[show ? "add" : "remove"]("show");
+        },
+        calculateTrackProfile : function (geometry) {
+            var i = 0, len = geometry.length,
+                distance, completeDistance = 0,
+                current, prev, 
+                profile = [],
+                maxHeight;
+
+            current = geometry[0];
+
+            profile.push({
+                distance : 0,
+                height : current[2]
+            });
+
+            maxHeight = current[2];
+            prev = current;
+
+            for (i = 1; i < len; i += 1) {
+                current = geometry[i];
+
+                if (current[2] > maxHeight) {
+                    maxHeight = current[2];
+                }
+
+                distance = Math.sqrt(Math.pow(current[0] - prev[0], 2) + 
+                                     Math.pow(current[1] - prev[1], 2) + 
+                                     Math.pow(current[2] - prev[2], 2));
+
+                completeDistance += distance;
+
+                profile.push({
+                    distance : completeDistance,
+                    height : current[2]
+                });
+
+                prev = current;
+            }
+
+            profile.forEach(function (item, index, scope) {
+                scope[index].distance /= completeDistance;
+                scope[index].height /= maxHeight;
+            });
+
+            this.profile = profile;
+
+            this.render();
+        },
+
+        getStyle : function (property) {
+            return parseInt(window.getComputedStyle(this.element, null).getPropertyValue(property), 10);
+        },
+        
+        render : function () {
+            var canvas = this.element,
+                context,
+                profile = this.profile,
+                height,
+                width,
+                scaledHeight;
+
+            if (canvas) {
+                height = canvas.height = this.getStyle("height");
+                width = canvas.width = this.getStyle("width");
+                scaledHeight = height * 0.75;
+
+
+                context = canvas.getContext("2d");
+
+                context.clearRect(0, 0, width, height);
+                
+                context.lineWidth = 1;
+                context.strokeStyle = "#555555";
+                context.beginPath();
+                context.moveTo(0, scaledHeight);
+                context.lineTo(width, scaledHeight);
+                console.log(width, scaledHeight);
+                context.stroke();
+                context.closePath();
+
+                context.lineWidth = 2;
+                context.strokeStyle = "#ffffff";
+                context.beginPath();
+
+                profile.forEach(function (item, index, scope) {
+                    //console.log(item.distance, item.height);
+                    if (index === 0) {
+                        context.moveTo(0, height - item.height * scaledHeight);
+                    } 
+                    else {
+                        context.lineTo(item.distance * width, height - item.height * scaledHeight);
+                    }
+                });
+
+                context.stroke();
+                context.closePath();
+            }
+        },
+    };
+
 
     Main = function () {
         this.container = null;
@@ -112,7 +226,7 @@
 
         this.showTrack = true;
 
-        this.profileCanvas = document.querySelector(".profile");
+        this.profilePanel = new ProfilePanel(document.querySelector(".profile"));
 
         this.init();
     };
@@ -144,7 +258,6 @@
             this.initEventListeners();
 
             $.get("includes/signs.json", this.initSigns);
-
         },
 
         initSigns : function (signs) {
@@ -210,7 +323,6 @@
             renderer.domElement.style.left = "0px";
 
             this.container.appendChild(renderer.domElement);
-
         },
 
         initEventListeners : function () {
@@ -222,12 +334,8 @@
             this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
         },
 
-        onShowProfileChange : function () {
-            if (this.profileCanvas) {
-                this.profileCanvas.classList.contains("show") ?
-                    this.profileCanvas.classList.remove("show") :
-                    this.profileCanvas.classList.add("show");
-            }
+        onShowProfileChange : function (e) {
+            this.profilePanel.toggle(e.target.checked);
         },
 
         onShowTrackChange : function () {
@@ -252,7 +360,6 @@
 
             loader = new THREE.CTMLoader(this.renderer.context);
             loader.load("resources/map1.ctm", this.onMeshLoaded, false, false);
-
         },
 
         initPostprocessing : function () {
@@ -322,109 +429,17 @@
 
             roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
             roadMesh.position.set(-0.5, -0.5, 0.0);
-//            roadMesh.rotation.x = -0.8;
+            //roadMesh.rotation.x = -0.8;
             roadMesh.material.depthWrite = false;
             this.postprocessing.scene.add(this.roadMesh);
 
             this.updateLoadCounter();
-
-        },
-
-        calculateTrackProfile : function (geometry) {
-        
-            var i = 0, len = geometry.length,
-                distance, completeDistance = 0,
-                current, prev, 
-                profile = [],
-                maxHeight;
-
-            current = geometry[0];
-
-            profile.push({
-                distance : 0,
-                height : current[2]
-            });
-
-            maxHeight = current[2];
-            prev = current;
-
-            for (i = 1; i < len; i += 1) {
-                current = geometry[i];
-
-                if (current[2] > maxHeight) {
-                    maxHeight = current[2];
-                }
-
-                distance = Math.sqrt(Math.pow(current[0] - prev[0], 2) + 
-                                     Math.pow(current[1] - prev[1], 2) + 
-                                     Math.pow(current[2] - prev[2], 2));
-
-                completeDistance += distance;
-
-                profile.push({
-                    distance : completeDistance,
-                    height : current[2]
-                });
-
-                prev = current;
-            }
-
-            profile.forEach(function (item, index, scope) {
-                scope[index].distance /= completeDistance;
-                scope[index].height /= maxHeight;
-            });
-
-            console.log(maxHeight);
-
-            this.profile = profile;
-
-            this.renderProfile();
-        },
-        
-        renderProfile : function () {
-            var canvas = this.profileCanvas,
-                context,
-                profile = this.profile,
-                height,
-                width;
-
-            if (canvas) {
-                height = canvas.height * 0.75;
-                width = canvas.width;
-
-                context = canvas.getContext("2d");
-                
-                context.lineWidth = 1;
-                context.strokeStyle = "#555555";
-                context.beginPath();
-                context.moveTo(0, height);
-                context.lineTo(width, height);
-                context.stroke();
-                context.closePath();
-
-                context.lineWidth = 2;
-                context.strokeStyle = "#ffffff";
-                context.beginPath();
-
-                profile.forEach(function (item, index, scope) {
-                    console.log(item.distance, item.height);
-                    if (index === 0) {
-                        context.moveTo(0, height - item.height * height);
-                    } 
-                    else {
-                        context.lineTo(item.distance * width, height - item.height * height);
-                    }
-                });
-
-                context.stroke();
-                context.closePath();
-            }
         },
 
         onTrackJSONLoaded : function (geometry) {
             this.createPath(geometry);
 
-            this.calculateTrackProfile(geometry);
+            this.profilePanel.calculateTrackProfile(geometry);
 
             this.updateLoadCounter();
         },
@@ -432,7 +447,7 @@
         updateLoadCounter : function () {
             this.itemsLoaded += 1;
             if (this.itemsLoaded === this.itemsToLoad) {
-//                this.terrainMesh.rotation.x = -0.8;
+                //this.terrainMesh.rotation.x = -0.8;
                 this.clock.start();
                 this.camera.lookAt(this.scene.position);
                 this.animateStart();
@@ -562,7 +577,6 @@
                 });
                 terrainMesh.add(collada.scene);
             });
-
         },
 
         onWindowResize : function (event) {
@@ -655,7 +669,9 @@
                 vert = vertices[i];
                 waypoints.push(vert);
                 path.vertices.push(
-                    new THREE.Vector3(vert[0], vert[1], vert[2]) 
+                    new THREE.Vector3(vert[0] - parseInt(vert[0], 10), 
+                        vert[1] - parseInt(vert[1], 10), 
+                        vert[2]) 
                 );
             }
 
@@ -672,12 +688,11 @@
                 fog : false
             }), THREE.LineStrip);
             
-            track.position.set(-0.5, -0.5, 0.1);
+            track.position.set(-0.5, -0.5, 0.005);
             //track.rotation.x = -0.8;
             this.track = new THREE.Scene();
 
             this.track.add(track);
-
         }
     };
 

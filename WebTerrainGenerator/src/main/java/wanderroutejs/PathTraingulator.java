@@ -69,7 +69,7 @@ public class PathTraingulator
         Iterator<ImmutableVector<Vector3>> iter = path.getVectorIterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
-            v.setAttribute(pos, vec[0], vec[1], vec[2] * heightScale);
+            v.setAttribute(pos, vec[0] - (int) vec[0], vec[1] - (int) vec[1], vec[2] * heightScale);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }
