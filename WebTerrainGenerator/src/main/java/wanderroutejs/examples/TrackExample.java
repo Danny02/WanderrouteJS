@@ -30,6 +30,7 @@ import wanderroutejs.io.PlainJSONModelWriter;
 import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
 import darwin.jopenctm.compression.RawEncoder;
+import darwin.util.math.base.vector.*;
 import darwin.util.math.composits.Path;
 
 /**
@@ -54,7 +55,14 @@ public class TrackExample
         InputStream in = TrackExample.class.getResourceAsStream(EXAMPLE_PATH);
         TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
 
-        Path path = trackGenerator.makeTrip().getTripAsPath();
+        Path<Vector3> path = trackGenerator.makeTrip().getTripAsPath();
+
+        Path<Vector2> p2 = new Path<>();
+        for (ImmutableVector<Vector3> v : path.getVectorIterable()) {
+            p2.addPathElement(new Vector2(v.getCoords()[0], v.getCoords()[1]));
+        }
+        PathTestFrame frame = new PathTestFrame(new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_RGB));
+        frame.drawPath(p2);
 
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
 
@@ -78,7 +86,7 @@ public class TrackExample
 
         PathTraingulator trian = new PathTraingulator();
         {
-            Mesh pathPrisma = trian.buildExtrudedPrisma(path, 2f, 5f);
+            Mesh pathPrisma = trian.buildExtrudedPrisma(p2, 0.0001f, 5f);
 
             ModelWriter writer = new CtmModelWriter(new RawEncoder());
             File pathFile = new File(OUTPUT_PATH, "path." + writer.getDefaultFileExtension());

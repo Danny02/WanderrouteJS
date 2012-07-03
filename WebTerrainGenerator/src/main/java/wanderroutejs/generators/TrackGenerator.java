@@ -32,7 +32,7 @@ import darwin.util.math.composits.Path;
  * @author simonschmidt
  */
 public class TrackGenerator {
-    
+
     public static TrackGenerator fromFile(File file) {
         TrackGenerator generator = null;
         try {
@@ -42,19 +42,19 @@ public class TrackGenerator {
             System.err.println("File not found: " + file.getPath());
         }
         return generator;
-        
+
     }
-	
+
 	public static TrackGenerator fromStream(InputStream stream) {
-        return new TrackGenerator(GpxFileDataAccess.getPoints(stream));        
+        return new TrackGenerator(GpxFileDataAccess.getPoints(stream));
     }
-    
+
     public static TrackGenerator fromURl (URL url) {
         throw new NotImplementedException();
     }
     private List<TrackPoint> trackPoints;
     private Trip trip;
-    private Path path;
+    private Path<Vector3> path;
 
     private TrackGenerator(List<TrackPoint> trackPoints)
     {
@@ -78,7 +78,7 @@ public class TrackGenerator {
         return this;
     }
 
-    public Path getTripAsPath()
+    public Path<Vector3> getTripAsPath()
     {
         return this.path;
     }
@@ -86,12 +86,12 @@ public class TrackGenerator {
     public Rectangle getTripBoundingBox()
     {
         List<TrackPoint> corners = trip.getMinMaxPoints();
-		
+
         int x = (int) ((TrackPoint) corners.get(0)).getLon(),
             y = (int) ((TrackPoint) corners.get(0)).getLat(),
             width = (int) ((TrackPoint) corners.get(1)).getLon() + 1 - x,
             height = (int) ((TrackPoint) corners.get(1)).getLat() + 1 - y;
-        
+
 
         Rectangle box = new Rectangle(
                 Math.abs(x),

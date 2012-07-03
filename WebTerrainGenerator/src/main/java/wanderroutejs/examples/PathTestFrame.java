@@ -44,7 +44,7 @@ public class PathTestFrame extends JFrame {
 
     private final BufferedImage image;
 
-    public PathTestFrame(BufferedImage imageOrg) throws HeadlessException, IOException {
+    public PathTestFrame(BufferedImage imageOrg) {
         image = new BufferedImage(imageOrg.getWidth(), imageOrg.getHeight(), imageOrg.getType());
         new RescaleOp(60, 60, null).filter(imageOrg, image);
 
