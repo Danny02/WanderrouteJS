@@ -36,12 +36,12 @@ public class PlainJSONModelWriter implements ModelWriter {
         if (model.length != 1) {
             throw new IllegalArgumentException("Can only export a single Model!");
         }
-        StringBuilder builder = new StringBuilder('{');
+        StringBuilder builder = new StringBuilder().append('{');
 
         Mesh m = model[0].getMesh();
         int[] indice = m.getIndicies();
         if (indice != null) {
-            builder.append("index = ");
+            builder.append("index : ");
             builder.append("[");
             for (int i = 0; i < indice.length; i++) {
                 builder.append(indice[i]);
@@ -54,7 +54,7 @@ public class PlainJSONModelWriter implements ModelWriter {
 
         VertexBuffer vbuffer = m.getVertices();
         for (Element ele : vbuffer.layout.getElements()) {
-            builder.append(ele.getBezeichnung()).append(" = ");
+            builder.append(ele.getBezeichnung()).append(" : ");
 
             builder.append("[");
             for (Vertex v : vbuffer) {

@@ -31,7 +31,7 @@ public class NormalMapTest
 //        IIORegistry.getDefaultInstance().registerApplicationClasspathSpis();
 
 
-        BufferedImage img = ImageUtil2.loadImage("/examples/N50E11.hgt");
+        BufferedImage img = ImageUtil2.loadImage(NormalMapTest.class.getResource("/examples/N50E011.hgt"));
         img = ImageUtil2.getScaledImage(img, 512, 512, false);
 
         BufferedImage normal = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);

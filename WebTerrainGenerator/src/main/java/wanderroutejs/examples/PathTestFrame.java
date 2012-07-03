@@ -25,6 +25,7 @@ import java.util.List;
 import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
+import sun.net.util.URLUtil;
 import wanderroutejs.PathTraingulator;
 import wanderroutejs.datasources.*;
 import wanderroutejs.imageprocessing.ImageUtil2;
@@ -79,7 +80,7 @@ public class PathTestFrame extends JFrame {
     }
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-        BufferedImage imageOrg = ImageUtil2.loadImage("/examples/N50E011.hgt");
+        BufferedImage imageOrg = ImageUtil2.loadImage(PathTestFrame.class.getResource("/examples/N50E011.hgt"));
 
         List<Path<Vector2>> paths = new ArrayList<>(10000);
 
