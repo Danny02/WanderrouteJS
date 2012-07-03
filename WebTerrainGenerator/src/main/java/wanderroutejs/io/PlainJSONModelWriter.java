@@ -41,7 +41,7 @@ public class PlainJSONModelWriter implements ModelWriter {
         Mesh m = model[0].getMesh();
         int[] indice = m.getIndicies();
         if (indice != null) {
-            builder.append("index : ");
+            builder.append("\"index\":");
             builder.append("[");
             for (int i = 0; i < indice.length; i++) {
                 builder.append(indice[i]);
@@ -54,7 +54,9 @@ public class PlainJSONModelWriter implements ModelWriter {
 
         VertexBuffer vbuffer = m.getVertices();
         for (Element ele : vbuffer.layout.getElements()) {
-            builder.append(ele.getBezeichnung()).append(" : ");
+            builder.append("\"")
+					.append(ele.getBezeichnung())
+					.append("\":");
 
             builder.append("[");
             for (Vertex v : vbuffer) {
@@ -68,7 +70,8 @@ public class PlainJSONModelWriter implements ModelWriter {
                 }
                 builder.append("],");
             }
-            builder.append("];\n");
+			builder.deleteCharAt(builder.length() - 1);
+            builder.append("]");
         }
         builder.append('}');
         out.write(builder.toString().getBytes());
