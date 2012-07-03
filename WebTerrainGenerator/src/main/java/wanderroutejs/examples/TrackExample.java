@@ -49,9 +49,14 @@ public class TrackExample
 
     }
     private static final int TESS_FACTOR = 100;
+	
+	private float heightScale;
 
     public void generate()
     {
+		
+		heightScale = 1f / 4500;
+		
         InputStream in = TrackExample.class.getResourceAsStream(EXAMPLE_PATH);
         TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
 
@@ -84,7 +89,17 @@ public class TrackExample
             ex.printStackTrace();
         }
 
-        PathTraingulator trian = new PathTraingulator();
+		PathTraingulator trian = new PathTraingulator();
+        {
+            Mesh pathMesh = trian.buildPathMesh(path, heightScale);
+            ModelWriter writerJson = new PlainJSONModelWriter();
+            File pathFile2 = new File(OUTPUT_PATH, "path." + writerJson.getDefaultFileExtension());
+            try (OutputStream out = new FileOutputStream(pathFile2)) {
+                writerJson.writeModel(out, new Model[]{new Model(pathMesh, null)});
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
         {
             Mesh pathPrisma = trian.buildExtrudedPrisma(p2, 0.0001f, 5f);
 
@@ -92,16 +107,6 @@ public class TrackExample
             File pathFile = new File(OUTPUT_PATH, "path." + writer.getDefaultFileExtension());
             try (OutputStream out = new FileOutputStream(pathFile)) {
                 writer.writeModel(out, new Model[]{new Model(pathPrisma, null)});
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-        {
-            Mesh pathMesh = trian.buildPathMesh(path);
-            ModelWriter writerJson = new PlainJSONModelWriter();
-            File pathFile2 = new File(OUTPUT_PATH, "path." + writerJson.getDefaultFileExtension());
-            try (OutputStream out = new FileOutputStream(pathFile2)) {
-                writerJson.writeModel(out, new Model[]{new Model(pathMesh, null)});
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -189,7 +194,7 @@ public class TrackExample
     {
         HeightSource ambient = new HeightMapSource(ambientOcclusionImg, TESS_FACTOR * 3, 1f / 255);
         HeightmapGenerator generator = new GridHeightmap(TESS_FACTOR, ambient);
-        HeightSource source = new HeightMapSource(img, TESS_FACTOR * 3, 1f / 4500);
+        HeightSource source = new HeightMapSource(img, TESS_FACTOR * 3, heightScale);
 
         Mesh mesh = generator.generateVertexData(source);
         Model m = new Model(mesh, null);

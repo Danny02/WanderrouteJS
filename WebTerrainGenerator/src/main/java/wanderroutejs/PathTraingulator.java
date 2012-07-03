@@ -22,7 +22,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-import javax.media.opengl.GL;
 import wanderroutejs.datasources.HeightSource;
 import wanderroutejs.examples.ImageFrame;
 import wanderroutejs.io.PlainJSONModelWriter;
@@ -36,6 +35,7 @@ import darwin.util.math.base.Line;
 import darwin.util.math.base.vector.Vector;
 import darwin.util.math.base.vector.*;
 import darwin.util.math.composits.*;
+import javax.media.opengl.GL;
 
 /**
  *
@@ -60,7 +60,7 @@ public class PathTraingulator
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }
 
-    public Mesh buildPathMesh(Path<Vector3> path)
+    public Mesh buildPathMesh(Path<Vector3> path, float heightScale)
     {
         Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         VertexBuffer vb = new VertexBuffer(pos, path.size());
@@ -69,7 +69,7 @@ public class PathTraingulator
         Iterator<ImmutableVector<Vector3>> iter = path.getVectorIterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
-            v.setAttribute(pos, vec[0], vec[1], vec[2]);
+            v.setAttribute(pos, vec[0], vec[1], vec[2] * heightScale);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }

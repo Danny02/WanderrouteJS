@@ -104,9 +104,11 @@
         this.onShowProfileChange = this.onShowProfileChange.bind(this);
         this.displaySign = this.displaySign.bind(this);
         this.initSigns = this.initSigns.bind(this);
+        this.onToggleFlyAlongPath = this.onToggleFlyAlongPath.bind(this);
 
         this.chkShowTrack = document.querySelector("[name='show-track']");
         this.chkShowProfile = document.querySelector("[name='show-profile']");
+        this.chkFlyAlongPath = document.querySelector("[name='fly-along-path']");
 
         this.showTrack = true;
 
@@ -118,6 +120,9 @@
     Main.prototype = {
         init : function () {
             var scene, projector, that = this;
+
+            this.flying = false;
+            this.origControls = null;
 
             this.container = document.createElement('div');
             document.body.appendChild(this.container);
@@ -214,6 +219,7 @@
             this.container.addEventListener('mousedown', this.onDocumentMouseDown, true);
             this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
             this.chkShowTrack.addEventListener('change', this.onShowTrackChange, false);
+            this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
         },
 
         onShowProfileChange : function () {
@@ -264,7 +270,7 @@
                 if (xhr.readyState === xhr.DONE) {
                     if (xhr.status === 200 || xhr.status === 0) {
                         if (xhr.responseText) {
-                            callback(JSON.parse(xhr.responseText));
+                            callback(JSON.parse(xhr.responseText).Position);
                         }
                     }
                 }
@@ -330,19 +336,23 @@
                 distance, completeDistance = 0,
                 current, prev, 
                 profile = [],
-                maxHeight = geometry[0][1];
+                maxHeight;
+
+            current = geometry[0];
 
             profile.push({
                 distance : 0,
-                height : geometry[0][2]
+                height : current[2]
             });
 
+            maxHeight = current[2];
+            prev = current;
+
             for (i = 1; i < len; i += 1) {
-                prev = geometry[i - 1];
                 current = geometry[i];
 
-                if (current[1] > maxHeight) {
-                    maxHeight = current[1];
+                if (current[2] > maxHeight) {
+                    maxHeight = current[2];
                 }
 
                 distance = Math.sqrt(Math.pow(current[0] - prev[0], 2) + 
@@ -356,12 +366,15 @@
                     height : current[2]
                 });
 
+                prev = current;
             }
 
             profile.forEach(function (item, index, scope) {
                 scope[index].distance /= completeDistance;
                 scope[index].height /= maxHeight;
             });
+
+            console.log(maxHeight);
 
             this.profile = profile;
 
@@ -477,6 +490,54 @@
             this.displaySign(data);
         },
 
+        onToggleFlyAlongPath : function (e) {
+            if (!this.flying) {
+                this.startFlying();
+            }
+            else {
+                this.stopFlying();
+            }
+        },
+
+        startFlying : function () {
+            this.fying = true;
+
+
+            this.origControls = this.controls;
+            this.origCameraPosition = this.camera.position;
+
+            var controls = new THREE.PathControls(this.camera);
+
+            controls.waypoints = this.waypoints;
+            controls.duration = 28
+            controls.useConstantSpeed = true;
+            //controls.createDebugPath = true;
+            //controls.createDebugDummy = true;
+            controls.lookSpeed = 0.06;
+            controls.lookVertical = false;
+            controls.lookHorizontal = false;
+            controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.lon = 180;
+            controls.lat = 0;
+
+            this.controls = controls;
+            this.controls.init();
+
+            this.scene.add(controls.animationParent);
+
+            controls.animation.play(true, 0);
+        },
+
+        stopFlying : function () {
+            this.flying = false;
+            this.controls.animation.stop();
+            this.camera.position = this.origCameraPosition;
+            this.scene.remove(this.controls.animationParent);
+            this.controls = this.origControls;
+            this.controls.init();
+        },
+
         displaySign : function (data) {
             var loader = new THREE.ColladaLoader(),
                 material,
@@ -533,8 +594,10 @@
         },
 
         animate : function () {
-            this.clock.stop();
-            this.controls.update();
+            var delta = this.clock.getDelta();
+
+            THREE.AnimationHandler.update(delta);
+            this.controls.update(delta);
             
             this.render();
             window.requestAnimationFrame(this.animate);
@@ -580,7 +643,9 @@
         },
 
         createPath : function (vertices) {
-            var path = new THREE.Geometry(), vert, i, len = vertices.length, track,
+            var path = new THREE.Geometry(), 
+                waypoints = [],
+                vert, i, len = vertices.length, track,
                 options = {
                     minFilter: THREE.LinearFilter,
                     stencilBuffer: false
@@ -588,10 +653,14 @@
 
             for (i = 0; i < len; i += 1) {
                 vert = vertices[i];
+                waypoints.push(vert);
                 path.vertices.push(
                     new THREE.Vector3(vert[0], vert[1], vert[2]) 
                 );
             }
+
+            this.waypoints = waypoints;
+
             path.computeVertexNormals();
 
             track = new THREE.Line(path, new THREE.LineBasicMaterial({
