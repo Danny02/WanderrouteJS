@@ -1,178 +1,204 @@
 package com.fmt.gps.track;
 
-import java.util.Date;
-
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-
 import com.fmt.gps.Travelog;
-
+import java.util.Date;
+import org.codehaus.jackson.annotate.JsonAutoDetect;
 
 /**
  * Track Point to be used in Trip lists.
+ * <p/>
  * @author root
- **/
-//@DatabaseTable
+ *
+ */
 @JsonAutoDetect
-public class TrackPoint implements Point {
-	//@DatabaseField
-	private double lat;	
-	//@DatabaseField
-	private double lon;	
-	//@DatabaseField
-	private Date time;
-	private int elevation;
-	private boolean distanceSet= false;
-	private int position= 0;
-	private Distance distance= null;
-	
-	@Override
-	public String toString() {
-		String obj= String.format("lat: %f lon: %f time: %s ", lat, lon, Travelog.TIME.format(this.getTime()));
-		if(null != this.distance) {
-			obj+= this.distance.toString(); //+Travelog.CR;
-		}
-		
-		return obj;
-	}
-	
-	/**
-	 * Creates TrackPoint (for Scala compatibility).
-	 * @return instantiated TrackPoint object
-	 **/
-	public static TrackPoint trackPointFactory() {
-		return new TrackPoint();
-	}
-	
-	@Override
-	public Object clone() {
-	    //throw new CloneNotSupportedException();
-		TrackPoint newPt= new TrackPoint();
-		
-		newPt.lat= this.lat;
-		newPt.lon= this.lon;
-		newPt.time= (Date)this.time.clone();
-		newPt.position= this.position;
-		if(this.distanceSet && null != this.distance) {
-			newPt.distanceSet= this.distanceSet;
-			newPt.distance= (Distance)this.distance.clone();
-		} else {
-			newPt.distanceSet= false;
-			newPt.distance= null;
-		}
-		
-		return newPt;
-	}
+public class TrackPoint implements Point
+{
+    private double lat;
+    private double lon;
+    private Date time;
+    private int elevation;
+    private boolean distanceSet = false;
+    private int position = 0;
+    private Distance distance = null;
 
-	/**
-	 * Constructor: needed by OrmLite.
-	 **/
-	public TrackPoint() {
-		distanceSet= false;
-	}
+    @Override
+    public String toString()
+    {
+        String obj = String.format("lat: %f lon: %f time: %s ", lat, lon, Travelog.TIME.format(this.getTime()));
+        if (null != this.distance) {
+            obj += this.distance.toString(); //+Travelog.CR;
+        }
 
-	/**
-	 * @return the lat
-	 */
-	public double getLat() {
-		return lat;
-	}
+        return obj;
+    }
 
-	/**
-	 * @param lat the lat to set
-	 */
-	public void setLat(double lat) {
-		this.lat = lat;
-	}
+    /**
+     * Creates TrackPoint (for Scala compatibility).
+     * <p/>
+     * @return instantiated TrackPoint object
+	 *
+     */
+    public static TrackPoint trackPointFactory()
+    {
+        return new TrackPoint();
+    }
 
-	/**
-	 * @return the lon
-	 */
-	public double getLon() {
-		return lon;
-	}
+    @Override
+    public Object clone()
+    {
+        TrackPoint newPt = new TrackPoint();
 
-	/**
-	 * @param lon the lon to set
-	 */
-	public void setLon(double lon) {
-		this.lon = lon;
-	}
+        newPt.lat = this.lat;
+        newPt.lon = this.lon;
+        newPt.time = (Date) this.time.clone();
+        newPt.position = this.position;
+        if (this.distanceSet && null != this.distance) {
+            newPt.distanceSet = this.distanceSet;
+            newPt.distance = (Distance) this.distance.clone();
+        } else {
+            newPt.distanceSet = false;
+            newPt.distance = null;
+        }
 
-	/**
-	 * @return the time
-	 */
-	public Date getTime() {
-		return time;
-	}
+        return newPt;
+    }
 
-	/**
-	 * @param time the time to set
-	 */
-	public void setTime(Date time) {
-		this.time = time;
-	}
+    /**
+     * Constructor: needed by OrmLite.
+	 *
+     */
+    public TrackPoint()
+    {
+        distanceSet = false;
+    }
 
-	/**
-	 * Sets time by miiliseconds.
-	 * @param currentTimeMillis
-	 **/
-	public void setTime(long currentTimeMillis) {
-		this.time= new Date(currentTimeMillis);
-	}
-	
-	/**
-	 * @return the elevation
-	 */
-	public int getElevation() {
-		return elevation;
-	}
+    /**
+     * @return the lat
+     */
+    @Override
+    public double getLat()
+    {
+        return lat;
+    }
 
-	/**
-	 * @param elevation the elevation to set
-	 */
-	public void setElevation(int elevation) {
-		this.elevation = elevation;
-	}
+    /**
+     * @param lat the lat to set
+     */
+    @Override
+    public void setLat(double lat)
+    {
+        this.lat = lat;
+    }
 
-	/**
-	 * @return the distanceSet
-	 */
-	public boolean isDistanceSet() {
-		return distanceSet;
-	}
+    /**
+     * @return the lon
+     */
+    @Override
+    public double getLon()
+    {
+        return lon;
+    }
 
-	/**
-	 * @param distanceSet the distanceSet to set
-	 */
-	public void setDistanceSet(boolean distanceSet) {
-		this.distanceSet = distanceSet;
-	}
+    /**
+     * @param lon the lon to set
+     */
+    @Override
+    public void setLon(double lon)
+    {
+        this.lon = lon;
+    }
 
-	/**
-	 * @return the position
-	 */
-	public int getPosition() {
-		return position;
-	}
+    /**
+     * @return the time
+     */
+    @Override
+    public Date getTime()
+    {
+        return time;
+    }
 
-	/**
-	 * @param position the position to set
-	 */
-	public void setPosition(int position) {
-		this.position = position;
-	}
+    /**
+     * @param time the time to set
+     */
+    @Override
+    public void setTime(Date time)
+    {
+        this.time = time;
+    }
 
-	/**
-	 * @return the distance
-	 */
-	public Distance getDistance() {
-		return distance;
-	}
+    /**
+     * Sets time by miiliseconds.
+     * <p/>
+     * @param currentTimeMillis
+	 *
+     */
+    @Override
+    public void setTime(long currentTimeMillis)
+    {
+        this.time = new Date(currentTimeMillis);
+    }
 
-	/**
-	 * @param distance the distance to set
-	 */
-	public void setDistance(Distance distance) {
-		this.distance = distance;
-	}
+    /**
+     * @return the elevation
+     */
+    public int getElevation()
+    {
+        return elevation;
+    }
+
+    /**
+     * @param elevation the elevation to set
+     */
+    public void setElevation(int elevation)
+    {
+        this.elevation = elevation;
+    }
+
+    /**
+     * @return the distanceSet
+     */
+    public boolean isDistanceSet()
+    {
+        return distanceSet;
+    }
+
+    /**
+     * @param distanceSet the distanceSet to set
+     */
+    public void setDistanceSet(boolean distanceSet)
+    {
+        this.distanceSet = distanceSet;
+    }
+
+    /**
+     * @return the position
+     */
+    public int getPosition()
+    {
+        return position;
+    }
+
+    /**
+     * @param position the position to set
+     */
+    public void setPosition(int position)
+    {
+        this.position = position;
+    }
+
+    /**
+     * @return the distance
+     */
+    public Distance getDistance()
+    {
+        return distance;
+    }
+
+    /**
+     * @param distance the distance to set
+     */
+    public void setDistance(Distance distance)
+    {
+        this.distance = distance;
+    }
 }
