@@ -22,6 +22,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import javax.media.opengl.GL;
 import wanderroutejs.datasources.HeightSource;
 import wanderroutejs.examples.ImageFrame;
 import wanderroutejs.io.PlainJSONModelWriter;
@@ -30,18 +31,16 @@ import darwin.geometrie.data.GenericVector;
 import darwin.geometrie.data.*;
 import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
-import darwin.jopenctm.compression.RawEncoder;
 import darwin.util.math.base.Line;
 import darwin.util.math.base.vector.Vector;
 import darwin.util.math.base.vector.*;
 import darwin.util.math.composits.*;
-import javax.media.opengl.GL;
 
 /**
  *
  * @author some
  */
-public class PathTraingulator
+public class PathTriangulator
 {
     public Mesh buildPathMesh(Path<Vector2> path, HeightSource height)
     {
@@ -55,12 +54,12 @@ public class PathTraingulator
             if (height != null) {
                 z = height.getHeightValue(vec[0], vec[1]);
             }
-            v.setAttribute(pos, vec[0], vec[1], z);
+            v.setAttribute(pos, vec[0], z, vec[1]);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }
 
-    public Mesh buildPathMesh(Path<Vector3> path, float heightScale)
+    public Mesh buildPathMesh(Path<Vector3> path)
     {
         Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         VertexBuffer vb = new VertexBuffer(pos, path.size());
@@ -69,16 +68,27 @@ public class PathTraingulator
         Iterator<ImmutableVector<Vector3>> iter = path.getVectorIterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
-            v.setAttribute(pos, vec[0] - (int) vec[0], vec[1] - (int) vec[1], vec[2] * heightScale);
+            v.setAttribute(pos, vec[0], vec[1], vec[2]);
         }
         return new Mesh(null, vb, GL.GL_LINE_STRIP);
     }
 
-    public <E extends Vector<E>> Mesh buildExtrudedPrisma(Path<E> path,
-                                                          float extrude,
-                                                          float height)
+    public Mesh buildExtrudedPrisma(float extrude, float height,
+                                    Path<Vector3> path)
     {
-        Collection<ImmutableVector<E>> poly = buildExtrudedPolygon(path, extrude);
+        Path<Vector2> p2 = new Path<>();
+        for (ImmutableVector<Vector3> v : path.getVectorIterable()) {
+            float[] c = v.getCoords();
+            p2.addPathElement(new Vector2(c[0], c[2]));
+        }
+
+        return buildExtrudedPrisma(p2, extrude, height);
+    }
+
+    public Mesh buildExtrudedPrisma(Path<Vector2> path, float extrude,
+                                    float height)
+    {
+        Collection<ImmutableVector<Vector2>> poly = buildExtrudedPolygon(path, extrude);
 
         int polyVertCount = poly.size();
         int pathVertCount = path.size();
@@ -86,11 +96,10 @@ public class PathTraingulator
         Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         VertexBuffer vb = new VertexBuffer(pos, polyVertCount * 2);
 
-        //create side-wall
-        for (ImmutableVector<E> vector : poly) {
+        for (ImmutableVector<Vector2> vector : poly) {
             float[] v = vector.getCoords();
-            vb.newVertex().setAttribute(pos, v[0], v[1], height);
-            vb.newVertex().setAttribute(pos, v[0], v[1], -height);
+            vb.newVertex().setAttribute(pos, v[0], height, v[1]);
+            vb.newVertex().setAttribute(pos, v[0], -height, v[1]);
         }
 
         int[] indices = new int[(polyVertCount * 2 + (pathVertCount - 1) * 4) * 3];
@@ -221,7 +230,7 @@ public class PathTraingulator
         path.addPathElement(new Vector2(0.27f, 0.65f));
         path.addPathElement(new Vector2(0.87f, 0.95f));
 
-        PathTraingulator trian = new PathTraingulator();
+        PathTriangulator trian = new PathTriangulator();
 
         int size = 500;
         BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
@@ -241,7 +250,7 @@ public class PathTraingulator
 //
         Mesh prismaMesh = trian.buildExtrudedPrisma(path, 0.01f, 5);
         try (FileOutputStream out = new FileOutputStream("path.ctm")) {
-            ModelWriter writer = new CtmModelWriter(new RawEncoder());
+            ModelWriter writer = new CtmModelWriter();
             writer.writeModel(out, new Model[]{new Model(prismaMesh, null)});
         }
 

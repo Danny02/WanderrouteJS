@@ -1,12 +1,12 @@
 package wanderroutejs.heighmapgeneration;
 
-import wanderroutejs.datasources.HeightSource;
-import java.util.*;
 import javax.media.opengl.GL;
+import wanderroutejs.datasources.HeightSource;
 
 import darwin.geometrie.data.*;
 import darwin.geometrie.unpacked.Mesh;
 
+@Deprecated
 public class TriangleStripGenerator implements HeightmapGenerator
 {
     private final int tessfactor;
