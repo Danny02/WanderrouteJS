@@ -32,17 +32,6 @@ public class TrackPoint implements Point
         return obj;
     }
 
-    /**
-     * Creates TrackPoint (for Scala compatibility).
-     * <p/>
-     * @return instantiated TrackPoint object
-	 *
-     */
-    public static TrackPoint trackPointFactory()
-    {
-        return new TrackPoint();
-    }
-
     @Override
     public Object clone()
     {

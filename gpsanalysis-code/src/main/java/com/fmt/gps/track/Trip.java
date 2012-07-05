@@ -183,8 +183,8 @@ public class Trip
     public static Trip makeTrip(int carSetPoint, TrackSegment... points)
     {
         Trip trip = new Trip(carSetPoint);
-//		trip.state.remove(tripState.naked);
-        trip.segments.addAll(Arrays.asList(points)); //.add(new TrackSegment(points, caminarType.undef));
+        trip.segments.addAll(Arrays.asList(points));
+
 //		trip.state.add(tripState.gpxOnly);
 //		trip.state.remove(tripState.usingDB);
 //		trip.state.add(tripState.usingTrip);
@@ -483,7 +483,7 @@ public class Trip
      * @return list of two points containing min and max
      * <p/>
      */
-    public List<TrackPoint> getMinMaxPoints()
+    public TrackPoint[] getMinMaxPoints()
     {
         TrackPoint min, max;
         min = (TrackPoint) segments.get(0).points.get(0).clone();
@@ -504,11 +504,9 @@ public class Trip
             }
         }
 
-        List<TrackPoint> minMax = new ArrayList<TrackPoint>();
-        minMax.add(min);
-        minMax.add(max);
-
-        return minMax;
+        return new TrackPoint[]{
+            min, max
+        };
     }
 
     /**
