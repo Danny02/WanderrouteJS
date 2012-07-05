@@ -12,52 +12,111 @@
     /**
      * Zeigt ein Fenster an, in dem sich Daten über einen Marker (Parkplatz, Toilette, Essen)
      * eingeben und speichern lassen.
-     * 
+     * @class SignWindow
+     * @singleton
+     *
+     * @constructor Die Instanz des Fensters sollte über
+     * SignWindow.init erzeugt werden erzeugt werden
+     * @private
+     * @param {String} id Id-Attributwert des HTML-Elements, das das 
+     * Fenster-HTML beinhaltet. 
      */
     SignWindow = function (id) {
+        /** @property 
+        * Beinhaltet eine Referenz auf das Fensterelement */
         this.container = document.getElementById(id);
 
+        /** @property 
+        * Beinhaltet eine Referenz auf das Eingabeelement für Markertypen */
         this.signType = this.container.querySelector("[name='type']");
+        /** @property 
+        * Beinhaltet eine Referenz auf das Eingabeelement für Markernamen */
         this.signName = this.container.querySelector("[name='name']");
+        /** @property 
+        * Beinhaltet eine Referenz auf das Eingabeelement für x-Achsenabschnitt des Markers */
         this.signPositionX = this.container.querySelector("[name='x']");
+        /** @property 
+        * Beinhaltet eine Referenz auf das Eingabeelement für y-Achsenabschnitt des Markers */
         this.signPositionY = this.container.querySelector("[name='y']");
+        /** @property 
+        * Beinhaltet eine Referenz auf das Eingabeelement für z-Achsenabschnitt des Markers */
         this.signPositionZ = this.container.querySelector("[name='z']");
 
+        /** @property 
+        * Beinhaltet eine Referenz auf den OK-Button */
         this.ok = this.container.querySelector(".ok");
+        /** @property 
+        * Beinhaltet eine Referenz auf den Cancel-Button */
         this.cancel = this.container.querySelector(".cancel");
 
+        // bindet die onOK und onCancel Methoden an this, sodass innerhalb
+        // diser Methoden this IMMER auf die Instanz diese Objekts zeigen muss,
+        // selbst wenn sie z.B. als EventHandler ausgeführt werden.
         this.onOk = this.onOk.bind(this);
+        this.onCancel = this.onCancel.bind(this);
 
         this.ok.addEventListener("click", this.onOk, false);
+        this.cancel.addEventListener("click", this.onCancel, false);
 
-        this.callback = null;
+
+        /** @property 
+        * Callback, der ausgeführt werden soll, wenn auf OK geklickt wurde */
+        this.okCallback = null;
     };
 
     /**
-     * Initialisiert ein SignWindow Objekt.
+     * Initialisiert das SignWindow Singleton.
+     * SignWindow verweist dannach auf die Singleton Instanz des Fensters.
+     * @param {String} id Id-Attributwert des HTML-Elements, das das 
+     * Fenster-HTML beinhaltet.
      */
     SignWindow.init = function (id) {
         SignWindow = new SignWindow(id);
     };
 
-    /**
-     *
-     */
     SignWindow.prototype = {
-        show : function (data, callback) {
+        /**
+         * Zeigt die Fensterinstanz an.
+         * @param {Object} data Datenobjekt, das die Informationen eines
+         * Markers beinhaltet.
+         * @param {Object} data.position Position des Markers
+         * @param {Number} data.position.x X-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.y Y-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.z Z-Achsen Abschnitt der
+         * Markerposition
+         * @param {String} data.name Der Name des Markers
+         * @param {String} data.type Der Typ des markers (Dateinahme der
+         * Marker-dateien ohne Dateiendung)
+         * @param {Function} okCallback Die Funktion die ausgeführt wird, sobald
+         * der Dialog mit OK abgeschlossen wird.
+         * @param {Object} okCallback.data Ein Datenobjekt selber Struktur, wie
+         * das, das der SignWindo#show Methode mitgegeben wurde und das die Werte der
+         * Formulareingabe beinhaltet.
+         */
+        show : function (data, okCallback) {
             this.signPositionX.value = data.position.x;
             this.signPositionY.value = data.position.y;
             this.signPositionZ.value = data.position.z;
 
-            this.callback = callback;
+            this.callback = okCallback;
 
             this.container.classList.add("show");
         },
 
+        /**
+         * Schließt das Fenster.
+         */
         close : function () {
             this.container.classList.remove("show");
         },
 
+        /**
+         * @private
+         * Behandelt Klicks auf den OK-Button. Ruft den OK-Callback auf und
+         * schließt das Fenster.
+         */
         onOk : function () {
             if (this.callback) {
                 this.callback({
@@ -73,15 +132,26 @@
             this.close();
         },
 
+        /**
+         * @private
+         * Behandelt Klicks auf den Cancel-Button. Schließt das Fenster.
+         */
         onCancel : function () {
             this.close();
         }
     };
     
     /**
-     *
+     * Controller für das Panel auf dem das Profil einer Strecke gerendert
+     * wird. 
+     * @class
+     * @constructor Erzeugt eine neue Instanz des ProfilPanels und verwendet
+     * das HTMLElement als Leinwand für die Zeichnung.
+     * @param {HTMLCanvasElement} element Das Element, das die View des Panels
+     * darstellt.
      */
     ProfilePanel = function (element) {
+        /** @property Referenz auf das Panel-Element. */
         this.element = element;
 
         this.render = this.render.bind(this);
@@ -91,13 +161,71 @@
         this.element.addEventListener("oTransitionEnd", this.render, false);
     };
 
-    /**
-     *
-     */
     ProfilePanel.prototype = {
+        /**
+         * Blendet das ProfilPanel ein oder aus.
+         * @param {Boolean} show Gint an, ob das Panel ein (true) oder
+         * ausgeblendet (false) werden soll.
+         */
         toggle : function (show) {
             this.element.classList[show ? "add" : "remove"]("show");
         },
+        
+        /**
+         * Zeichnet die Strecke auf die Leinwand.
+         */ 
+        render : function () {
+            var canvas = this.element,
+                context,
+                profile = this.profile,
+                height,
+                width,
+                scaledHeight;
+
+            if (canvas) {
+                height = canvas.height = this.getStyle("height");
+                width = canvas.width = this.getStyle("width");
+                scaledHeight = height * 0.75;
+
+
+                context = canvas.getContext("2d");
+
+                context.clearRect(0, 0, width, height);
+                
+                context.lineWidth = 1;
+                context.strokeStyle = "#555555";
+                context.beginPath();
+                context.moveTo(0, scaledHeight);
+                context.lineTo(width, scaledHeight);
+                context.stroke();
+                context.closePath();
+
+                context.lineWidth = 2;
+                context.strokeStyle = "#ffffff";
+                context.beginPath();
+
+                profile.forEach(function (item, index, scope) {
+                    //console.log(item.distance, item.height);
+                    if (index === 0) {
+                        context.moveTo(0, height - item.height * scaledHeight);
+                    } 
+                    else {
+                        context.lineTo(item.distance * width, height - item.height * scaledHeight);
+                    }
+                });
+
+                context.stroke();
+                context.closePath();
+            }
+        },
+
+        /** 
+         * Berechnet das Profil der Strecke.
+         * Sobald die Berechnung abgeschlossen ist, wird die Strecke durch
+         * einen Aufruf von ProfilePanel#render gezeichnet
+         * @param {Array} geometry Eine Liste von Punkten in der Form [x, y,
+         * z] die die einzelnen Wegpunkte der Strecke darstellen.
+         */
         calculateTrackProfile : function (geometry) {
             var i = 0, len = geometry.length,
                 distance, completeDistance = 0,
@@ -145,66 +273,34 @@
 
             this.render();
         },
-
+        
+        /**
+         * @private
+         * Hilfsfuntion um eine berechnete CSS-Property zu ermitteln.
+         * @param {String} property Name der CSS-Property dessen berechneter
+         * Wert berechnet werden soll.
+         */
         getStyle : function (property) {
             return parseInt(window.getComputedStyle(this.element, null).getPropertyValue(property), 10);
-        },
-        
-        render : function () {
-            var canvas = this.element,
-                context,
-                profile = this.profile,
-                height,
-                width,
-                scaledHeight;
-
-            if (canvas) {
-                height = canvas.height = this.getStyle("height");
-                width = canvas.width = this.getStyle("width");
-                scaledHeight = height * 0.75;
-
-
-                context = canvas.getContext("2d");
-
-                context.clearRect(0, 0, width, height);
-                
-                context.lineWidth = 1;
-                context.strokeStyle = "#555555";
-                context.beginPath();
-                context.moveTo(0, scaledHeight);
-                context.lineTo(width, scaledHeight);
-                console.log(width, scaledHeight);
-                context.stroke();
-                context.closePath();
-
-                context.lineWidth = 2;
-                context.strokeStyle = "#ffffff";
-                context.beginPath();
-
-                profile.forEach(function (item, index, scope) {
-                    //console.log(item.distance, item.height);
-                    if (index === 0) {
-                        context.moveTo(0, height - item.height * scaledHeight);
-                    } 
-                    else {
-                        context.lineTo(item.distance * width, height - item.height * scaledHeight);
-                    }
-                });
-
-                context.stroke();
-                context.closePath();
-            }
-        },
+        }
     };
 
     /**
-     * Hauptklasse
-     * 
+     * Die Hauptklasse, die für das initialisieren und den Ablauf der
+    * render-Schleife zuständig ist.
+     * @class
+     *
+     * @constructor Erstellt eine Instanz der Haupklasse, initialisiert alle
+     * Properties und startet dann die Initialisierung aller benötigten Daten
+     * um die Karte zu zeichnen, indem Main#init aufgerufen wird.
      */
     Main = function () {
         this.container = null;
 
         this.camera = null;
+        /** @property 
+         * Die Haupszene, auf die die Karte gezeichnet wird.
+         */
         this.scene = null;
         this.renderer = null;
         this.projector = null;
@@ -219,7 +315,12 @@
         this.itemsToLoad = 3;
         this.itemsLoaded = 0;
 
-        this.postprocessing = {};
+        /** @property 
+         * Enthält die sekundäre Szene, in die das Pfad-Prisma
+         * gezeichnet wird, das dann per Stenciltest auf die Karte projeziiert
+         * wird.
+         */
+        this.trackProjection = null;
         this.track = {};
 
         this.clock = new THREE.Clock();
@@ -251,6 +352,10 @@
     };
 
     Main.prototype = {
+        /**
+         * Initialisiert alles was nötig ist um die Karte zu zeichnen. 
+         * @private
+         */ 
         init : function () {
             var scene, projector, that = this;
 
@@ -261,7 +366,7 @@
             document.body.appendChild(this.container);
 
             scene = this.scene = new THREE.Scene();
-            //scene.add(new THREE.AxisHelper());
+            scene.add(new THREE.AxisHelper());
 
             this.initCamera(); 
 
@@ -279,6 +384,11 @@
             $.get("includes/signs.json", this.initSigns);
         },
 
+        /**
+         * Initialisiert die Marker
+         * @private
+         * @param {Array} signs Ein Array von Markern.
+         */ 
         initSigns : function (signs) {
             var that = this;
             if (this.terrainMesh !== null) {
@@ -291,6 +401,10 @@
             }
         },
 
+        /**
+         * Initialisiert die Camera
+         * @private
+         */ 
         initCamera : function () {
             //camera
             var camera = this.camera = new THREE.PerspectiveCamera(20, 
@@ -298,12 +412,20 @@
                                                                    1, 
                                                                    2000);
             camera.position.x = 0;
-            camera.position.y = 0
+            camera.position.y = 0;
             camera.position.z = 500;
             this.scene.add(camera);
         },
 
-        initControls : function () {
+        /**
+         * Initialisiert die Steuerelemente.
+         * @private
+         * @param {Array} [keys=65,83,68] Die drei Tasten, mit denen
+         * THREE.TrackballControls gesteuert werden können.
+         */ 
+        initControls : function (keys) {
+            keys || (keys = [/*A*/ 65, /*S*/ 83, /*D*/ 68]);
+
             var controls = this.controls = new THREE.TrackballControls(this.camera, this.container);
             controls.rotateSpeed = 1.0;
             controls.zoomSpeed = 1.2;
@@ -315,13 +437,13 @@
             controls.staticMoving = true;
             controls.dynamicDampingFactor = 0.3;
 
-            controls.keys = [
-                65, // = A
-                83, // = S
-                68  // = D
-            ];
+            controls.keys = keys;
         },
 
+        /**
+         * Initialisiert den Three.WebGLRenderer.
+         * @private
+         */
         initRenderer : function () {
             // RENDERER
             var renderer = this.renderer = new THREE.WebGLRenderer({
@@ -344,6 +466,10 @@
             this.container.appendChild(renderer.domElement);
         },
 
+        /**
+         * Initialisiert die event listener.
+         * @private
+         */ 
         initEventListeners : function () {
             //document.addEventListener('mousemove', onDocumentMouseMove, false);
             window.addEventListener('resize', this.onWindowResize, false);
@@ -353,14 +479,28 @@
             this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
         },
 
+        /**
+         * Behandlt Änderungen der "Profil anzeigen" Checkbox.
+         * @private 
+         */ 
         onShowProfileChange : function (e) {
             this.profilePanel.toggle(e.target.checked);
         },
 
+        /**
+         * Behandlt Änderungen der "Strecke anzeigen" Checkbox.
+         * @private 
+         */ 
         onShowTrackChange : function () {
             this.showTrack = this.chkShowTrack.checked;
         },
 
+        /**
+         * Initialisiert das Kartenterrain, indem die Terraindaten mittels
+         * THREE.CTMLoader geladen werden. Sobald der Ladevorgang abgeschlossen
+         * ist, wird Main#onMeshLoaded aufgerufen.
+         * @private 
+         */ 
         initTerrain : function () {
             var loader,
                 shaderUniforms;
@@ -381,7 +521,17 @@
             loader.load("resources/map1.ctm", this.onMeshLoaded, false, false);
         },
 
-        initPostprocessing : function () {
+
+        /**
+         * Initialisiert das Projektionsprisma des Pfades mittels
+         * THREE.CTMLoader. Sobald der Pfad geladen ist, wird
+         * Main#onTrackMashLoaded aufgerufen.
+         * Zudem werden die Wegpunkte des Pfades als JSON geladen, und sobald
+         * der Ladevorgang abgeschlossen ist, die Main#onTrackJSONLoaded
+         * methode ausgeführt.
+         * @private
+         */
+        initTrackProjection : function () {
             var loader,
                 xhr, callback;
 
@@ -407,10 +557,24 @@
             xhr.send(null);
         },
 
+        /**
+         * Hilfsfunktion um ein Element anhand dessen id-Attributs zu
+         * ermitteln.
+         * @private
+         */
         $ : function (id) {
             return document.getElementById(id);
         },
 
+        /**
+         * Callback der aufgerufen wird, sobald das Mesh der Karte fertig
+         * geladen wurde.
+         * Initialisiert ein Three.Mesh objekt mit dieser Geometrie und fügt
+         * dieses der Haupszene hinzu.
+         * @private 
+         * @param {THREE.Geometry} geometry. Objekt, dass die Geoetrie der
+         * Karte enthält.
+         */ 
         onMeshLoaded : function (geometry) {
             var shaderMaterial = new THREE.ShaderMaterial({
                     uniforms : this.shaderUniforms,
@@ -427,8 +591,18 @@
             this.updateLoadCounter();
         },
 
+        /**
+         * Callback, der ausgeführt wird, sobald das Mesh des Pfades
+         * vollständig geladen ist.
+         * Bereitet dann das Trackprisma für die Projektion auf die Karte vor
+         * und platziert es an der richtigen Stelle im Raum und fügt es der 
+         * Trackprojektions-Szene hinzu.
+         * @private
+         * @param {THREE.Geometry} geometry. Objekt, dass die Geoetrie der
+         * Strecke enthält.
+         */
         onTrackMashLoaded : function (geometry) {
-            var postprocessing = this.postprocessing,
+            var trackProjection = this.trackProjection,
                 options = {
                     minFilter: THREE.LinearFilter,
                     stencilBuffer: false
@@ -436,9 +610,9 @@
                 roadTest,
                 roadMesh;
 
-            postprocessing.scene = new THREE.Scene();
+            trackProjection.scene = new THREE.Scene();
 
-            postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
+            trackProjection.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
 
             roadTest = new THREE.ShaderMaterial({
                 vertexShader:   this.$('simple.vert').textContent,
@@ -450,11 +624,19 @@
             roadMesh.position.set(-0.5, -0.5, 0.0);
             //roadMesh.rotation.x = -0.8;
             roadMesh.material.depthWrite = false;
-            this.postprocessing.scene.add(this.roadMesh);
+            this.trackProjection.scene.add(this.roadMesh);
 
             this.updateLoadCounter();
         },
 
+        /**
+         * Callback, der aufgerufen wird, sobald die Wegpunkte der Strecke
+         * vollständig geladen wurden.
+         * Dannach werden zunächst #createPath und dann
+         * ProfilePanel#calculateTrackProfile aufgerufen.
+         * @private
+         * @param {Array} geometry Array, der alle Wegpunkte in der Form [x, y, z] beinhaltet.
+         */
         onTrackJSONLoaded : function (geometry) {
             this.createPath(geometry);
 
@@ -463,6 +645,11 @@
             this.updateLoadCounter();
         },
 
+        /**
+         * Updatet den Counter, der zählt, wie viele Asynchrone loader bereits mit dem Laden fertig sind.
+         * Sobald alle Loader fertig sind, wird die Uhr und die Animation gestartet.
+         * @private
+         */
         updateLoadCounter : function () {
             this.itemsLoaded += 1;
             if (this.itemsLoaded === this.itemsToLoad) {
@@ -543,7 +730,7 @@
             var controls = new THREE.PathControls(this.camera);
 
             controls.waypoints = this.waypoints;
-            controls.duration = 28
+            controls.duration = 28;
             controls.useConstantSpeed = true;
             //controls.createDebugPath = true;
             //controls.createDebugDummy = true;
@@ -653,18 +840,18 @@
             this.roadMesh.material.depthTest = true;
             gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
             renderer.setFaceCulling("front");
-            renderer.render(this.postprocessing.scene, this.camera);
+            renderer.render(this.trackProjection.scene, this.camera);
 
             gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
             renderer.setFaceCulling("back");
-            renderer.render(this.postprocessing.scene, this.camera);
+            renderer.render(this.trackProjection.scene, this.camera);
             gl.colorMask(true, true, true, true);
 
             //weg rendern
             gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
             renderer.setFaceCulling("front");
             this.roadMesh.material.depthTest = false;
-            renderer.render(this.postprocessing.scene, this.camera);
+            renderer.render(this.trackProjection.scene, this.camera);
 
             //GL state zurücksetzten
             gl.disable(gl.STENCIL_TEST);
