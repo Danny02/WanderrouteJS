@@ -6,8 +6,9 @@ import org.apache.commons.cli.*;
 import wanderroutejs.datasources.*;
 import wanderroutejs.heighmapgeneration.*;
 import wanderroutejs.imageprocessing.ImageUtil2;
+import wanderroutejs.io.PlainJSONModelWriter;
 
-import darwin.geometrie.io.ModelWriter;
+import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
 
 import static org.apache.commons.cli.OptionBuilder.withArgName;
@@ -18,25 +19,13 @@ public class Main
     public static final Options options = new Options();
 
     static {
-        options.addOption(withArgName("file").hasArg().isRequired()
-                .withDescription("The SRTM file to convert to a triangle Mesh")
-                .withLongOpt("file-path")
-                .create("f"));
+        options.addOption(withArgName("file").hasArg().isRequired().withDescription("The SRTM file to convert to a triangle Mesh").withLongOpt("file-path").create("f"));
 
-        options.addOption(withArgName("type").hasArg()
-                .withDescription("The OpenGL type of the mesh [TRIANGLE_STRIP, TRINAGLES]. Default is TRIANGLES")
-                .withLongOpt("mesh-type")
-                .create("t"));
+        options.addOption(withArgName("type").hasArg().withDescription("The OpenGL type of the mesh [TRIANGLE_STRIP, TRINAGLES]. Default is TRIANGLES").withLongOpt("mesh-type").create("t"));
 
-        options.addOption(withArgName("name").hasArg()
-                .withDescription("The JSON variable name to use for the data array.")
-                .withLongOpt("jsonVariableName")
-                .create("v"));
+        options.addOption(withArgName("name").hasArg().withDescription("The JSON variable name to use for the data array.").withLongOpt("jsonVariableName").create("v"));
 
-        options.addOption(OptionBuilder.hasArg()
-                .withDescription("The amount of tesselation default is " + TESS_DEFAULT)
-                .withLongOpt("tessfactor")
-                .create("t"));
+        options.addOption(withArgName("tessfactor").hasArg().withDescription("The amount of tesselation default is " + TESS_DEFAULT).withLongOpt("tesselation-factor").create("tf"));
 
         options.addOption("h", "help", false, null);
     }
@@ -56,7 +45,7 @@ public class Main
             String type = line.getOptionValue('t', "TRIANGLES");
             int tessfactor;
             try {
-                tessfactor = Integer.parseInt(line.getOptionValue('p', "" + TESS_DEFAULT));
+                tessfactor = Integer.parseInt(line.getOptionValue("tf", "" + TESS_DEFAULT));
             } catch (NumberFormatException ex) {
                 System.out.println("Error while parsing the mesh-precision option, using the default '" + TESS_DEFAULT + "'!");
                 tessfactor = TESS_DEFAULT;
@@ -78,22 +67,24 @@ public class Main
         System.out.println("Reading file: " + fileName);
 
         BufferedImage image = ImageUtil2.loadImage(new File(fileName).toURI().toURL());
-        HeightSource source = new HeightMapSource(image, tesselation, 1f / 6000);
+        HeightSource source = new ImageHeightSource(image, tesselation, 1f / 6000);
 
         String newFileName;
         HeightmapGenerator generator;
 
+        ModelWriter writer;
         if ("TRIANGLE_STRIP".equals(type)) {
             generator = new TriangleStripGenerator(tesselation);
             newFileName = fileName.replaceAll(".hgt", ".TRIANGLE_STRIP.");
+            writer = new PlainJSONModelWriter();
         } else {
             generator = new TrianglesGenerator(tesselation);
             newFileName = fileName.replaceAll(".hgt", ".TRIANGLES.");
+            writer = new CtmModelWriter();
         }
 
         Mesh mesh = generator.generateVertexData(source);
 
-        ModelWriter writer = null;
         newFileName += writer.getDefaultFileExtension();
 
         try (OutputStream out = new FileOutputStream(newFileName)) {

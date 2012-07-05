@@ -22,7 +22,6 @@ import java.awt.Rectangle;
 import java.io.*;
 import java.net.URL;
 import java.util.List;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import darwin.util.math.base.vector.Vector3;
 import darwin.util.math.composits.Path;
@@ -31,66 +30,78 @@ import darwin.util.math.composits.Path;
  *
  * @author simonschmidt
  */
-public class TrackGenerator {
-
-    public static TrackGenerator fromFile(File file) {
-        TrackGenerator generator = null;
-        try {
-            InputStream in = new FileInputStream(file);
-            generator = TrackGenerator.fromStream(in);
-        } catch (FileNotFoundException ex) {
-            System.err.println("File not found: " + file.getPath());
-        }
-        return generator;
-
+public class TrackGenerator
+{
+    public static TrackGenerator fromFile(File file) throws FileNotFoundException
+    {
+        return TrackGenerator.fromStream(new FileInputStream(file));
     }
 
-	public static TrackGenerator fromStream(InputStream stream) {
+    public static TrackGenerator fromURl(URL url) throws IOException
+    {
+        return TrackGenerator.fromStream(url.openStream());
+    }
+
+    public static TrackGenerator fromStream(InputStream stream)
+    {
         return new TrackGenerator(GpxFileDataAccess.getPoints(stream));
     }
-
-    public static TrackGenerator fromURl (URL url) {
-        throw new NotImplementedException();
-    }
-    private List<TrackPoint> trackPoints;
-    private Trip trip;
-    private Path<Vector3> path;
+    
+    private final Trip trip;
 
     private TrackGenerator(List<TrackPoint> trackPoints)
     {
-        this.trackPoints = trackPoints;
-    }
-
-    public TrackGenerator makeTrip()
-    {
         trip = Trip.makeTrip(1, new TrackSegment(trackPoints, TrackSegment.caminarType.undef));
-
-        path = new Path<>();
-
-        for (TrackPoint p : trip.getPoints()) {
-            path.addPathElement(new Vector3(
-                    (float) p.getLat(),
-                    (float) p.getLon(),
-                    p.getElevation() / 100f));
-
-        }
-
-        return this;
     }
 
     public Path<Vector3> getTripAsPath()
     {
-        return this.path;
+        Path<Vector3> path = new Path<>();
+
+        for (TrackPoint p : trip.getPoints()) {
+            path.addPathElement(new Vector3(
+                    (float) p.getLat(),
+                    p.getElevation(),
+                    (float) p.getLon()));
+
+        }
+
+        return path;
     }
 
+    public Path<Vector3> getTripAsPath(float heightScale, float xOffset,
+                                             float yOffset)
+    {
+        Path<Vector3> path = new Path<>();
+
+        for (TrackPoint p : trip.getPoints()) {
+            path.addPathElement(new Vector3(
+                    (float) p.getLat() + xOffset,
+                    p.getElevation() * heightScale,
+                    (float) p.getLon() + yOffset));
+
+        }
+
+        return path;
+    }
+
+    public Trip getTrip()
+    {
+        return trip;
+    }
+
+    //TODO warum int casts und Math abs
     public Rectangle getTripBoundingBox()
     {
-        List<TrackPoint> corners = trip.getMinMaxPoints();
+        TrackPoint[] minMax = trip.getMinMaxPoints();
+        TrackPoint min = minMax[0];
+        TrackPoint max = minMax[1];
 
-        int x = (int) ((TrackPoint) corners.get(0)).getLon(),
-            y = (int) ((TrackPoint) corners.get(0)).getLat(),
-            width = (int) ((TrackPoint) corners.get(1)).getLon() + 1 - x,
-            height = (int) ((TrackPoint) corners.get(1)).getLat() + 1 - y;
+
+        int x = (int) min.getLon();
+        int y = (int) min.getLat();
+        int width = (int) max.getLon() + 1 - x;
+        int height = (int) max.getLat() + 1 - y;
 
 
         Rectangle box = new Rectangle(

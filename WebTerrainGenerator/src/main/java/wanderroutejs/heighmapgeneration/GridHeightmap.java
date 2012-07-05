@@ -59,10 +59,10 @@ public class GridHeightmap implements HeightmapGenerator
                 float y = pos.getY();
 
                 float h = image.getHeightValue(x, y);
-                vertex.setAttribute(position, x-0.5, y-0.5, h);
+                vertex.setAttribute(position, x-0.5, h, y-0.5);
 
                 float a = ao.getHeightValue(x, y);
-                vertex.setAttribute(ambient, a, 0f, 0f);
+                vertex.setAttribute(ambient, a, a, a);
             }
         });
 

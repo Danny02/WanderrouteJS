@@ -26,7 +26,7 @@ import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 import sun.net.util.URLUtil;
-import wanderroutejs.PathTraingulator;
+import wanderroutejs.PathTriangulator;
 import wanderroutejs.datasources.*;
 import wanderroutejs.imageprocessing.ImageUtil2;
 import wanderroutejs.io.PlainJSONModelWriter;
@@ -108,8 +108,8 @@ public class PathTestFrame extends JFrame {
         frame.repaint();
         System.out.println("drawing finished!");
 
-        PathTraingulator tria = new PathTraingulator();
-        HeightSource source = new HeightMapSource(imageOrg, 1f / 6000);
+        PathTriangulator tria = new PathTriangulator();
+        HeightSource source = new ImageHeightSource(imageOrg, 1f / 6000);
 
         System.out.println("start exporting mesh..");
         ModelWriter writer = new PlainJSONModelWriter();

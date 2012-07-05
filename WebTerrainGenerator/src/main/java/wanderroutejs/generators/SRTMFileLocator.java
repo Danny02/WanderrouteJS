@@ -27,12 +27,12 @@ import java.util.zip.*;
  *
  * @author simonschmidt
  */
-public class SRTMGenerator
+public class SRTMFileLocator
 {
     private List<String> fileNames;
     private List<File> files;
 
-    public SRTMGenerator loadRectangle(Rectangle boundingBox)
+    public SRTMFileLocator loadRectangle(Rectangle boundingBox)
     {
         // fetch SRTM
         generateFileNames(boundingBox);
@@ -40,7 +40,7 @@ public class SRTMGenerator
         return this;
     }
 
-    public SRTMGenerator loadSRTMFiles(File outputDir)
+    public SRTMFileLocator loadSRTMFiles(File outputDir)
     {
         assert outputDir.isDirectory();
         assert fileNames != null : "no rectangle specified";
@@ -59,7 +59,7 @@ public class SRTMGenerator
 
     private void generateFileNames(Rectangle boundingBox)
     {
-        this.fileNames = new ArrayList<>();
+        fileNames = new ArrayList<>();
 
         int startX = boundingBox.x,
                 startY = boundingBox.y;

@@ -26,12 +26,12 @@ import static java.lang.Math.*;
  *
  * @author daniel
  */
-public class HeightMapSource implements HeightSource
+public class ImageHeightSource implements HeightSource
 {
     private final BufferedImage heightMap;
     private final float scaleFactor;
 
-    public HeightMapSource(BufferedImage image, float scaleFactor)
+    public ImageHeightSource(BufferedImage image, float scaleFactor)
     {
         heightMap = image;//new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         new GaussBlurOp(5).filter(image, heightMap);
@@ -41,7 +41,7 @@ public class HeightMapSource implements HeightSource
 //        frame.addImage(image);;
     }
 
-    public HeightMapSource(BufferedImage image, int size, float scaleFactor)
+    public ImageHeightSource(BufferedImage image, int size, float scaleFactor)
     {
         this(ImageUtil2.getScaledImage(image, size, size, false), scaleFactor);
     }

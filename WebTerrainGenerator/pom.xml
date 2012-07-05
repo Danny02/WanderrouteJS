@@ -108,10 +108,6 @@
                     <artifactId>gluegen-rt-natives-linux-amd64</artifactId>
                     <groupId>org.jogamp.gluegen</groupId>
                 </exclusion>
-                <exclusion>
-                    <artifactId>gluegen-rt</artifactId>
-                    <groupId>org.jogamp.gluegen</groupId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

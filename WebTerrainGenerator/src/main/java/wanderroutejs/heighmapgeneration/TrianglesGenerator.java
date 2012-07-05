@@ -6,6 +6,7 @@ import wanderroutejs.datasources.HeightSource;
 import darwin.geometrie.data.*;
 import darwin.geometrie.unpacked.Mesh;
 
+@Deprecated
 public class TrianglesGenerator implements HeightmapGenerator
 {
     private final int tessfactor;
@@ -32,7 +33,7 @@ public class TrianglesGenerator implements HeightmapGenerator
 
                 float xf = (xPos - xHalf) * tf;
                 float zf = (zPos - zHalf) * tf;
-                
+
                 Float[] data2 = new Float[]{xf, source.getHeightValue(xPos, z), zf};
                 Float[] data3 = new Float[]{xf + tf, source.getHeightValue(xPos + 1, z + 1), zf + tf};
 
