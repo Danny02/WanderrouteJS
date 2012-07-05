@@ -1,4 +1,21 @@
-/*global THREE, Detector */
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*global THREE, Detector */
 (function (global, doc) {
     if (!Detector.webgl) {
         Detector.addGetWebGLMessage();
@@ -9,39 +26,39 @@
         ProfilePanel,
         SignWindow;
 
-    /**
-     * Zeigt ein Fenster an, in dem sich Daten über einen Marker (Parkplatz, Toilette, Essen)
+<span id='SignWindow'>    /**
+</span>     * Zeigt ein Fenster an, in dem sich Daten über einen Marker (Parkplatz, Toilette, Essen)
      * eingeben und speichern lassen.
      * 
      */
     SignWindow = function (id) {
         this.container = document.getElementById(id);
 
-        this.signType = this.container.querySelector("[name='type']");
-        this.signName = this.container.querySelector("[name='name']");
-        this.signPositionX = this.container.querySelector("[name='x']");
-        this.signPositionY = this.container.querySelector("[name='y']");
-        this.signPositionZ = this.container.querySelector("[name='z']");
+        this.signType = this.container.querySelector(&quot;[name='type']&quot;);
+        this.signName = this.container.querySelector(&quot;[name='name']&quot;);
+        this.signPositionX = this.container.querySelector(&quot;[name='x']&quot;);
+        this.signPositionY = this.container.querySelector(&quot;[name='y']&quot;);
+        this.signPositionZ = this.container.querySelector(&quot;[name='z']&quot;);
 
-        this.ok = this.container.querySelector(".ok");
-        this.cancel = this.container.querySelector(".cancel");
+        this.ok = this.container.querySelector(&quot;.ok&quot;);
+        this.cancel = this.container.querySelector(&quot;.cancel&quot;);
 
         this.onOk = this.onOk.bind(this);
 
-        this.ok.addEventListener("click", this.onOk, false);
+        this.ok.addEventListener(&quot;click&quot;, this.onOk, false);
 
         this.callback = null;
     };
 
-    /**
-     * Initialisiert ein SignWindow Objekt.
+<span id='SignWindow-method-init'>    /**
+</span>     * Initialisiert ein SignWindow Objekt.
      */
     SignWindow.init = function (id) {
         SignWindow = new SignWindow(id);
     };
 
-    /**
-     *
+<span id='SignWindow-property-prototype'>    /**
+</span>     *
      */
     SignWindow.prototype = {
         show : function (data, callback) {
@@ -51,11 +68,11 @@
 
             this.callback = callback;
 
-            this.container.classList.add("show");
+            this.container.classList.add(&quot;show&quot;);
         },
 
         close : function () {
-            this.container.classList.remove("show");
+            this.container.classList.remove(&quot;show&quot;);
         },
 
         onOk : function () {
@@ -78,25 +95,25 @@
         }
     };
     
-    /**
-     *
+<span id='ProfilePanel'>    /**
+</span>     *
      */
     ProfilePanel = function (element) {
         this.element = element;
 
         this.render = this.render.bind(this);
 
-        this.element.addEventListener("webkitTransitionEnd", this.render, false);
-        this.element.addEventListener("transitionend", this.render, false);
-        this.element.addEventListener("oTransitionEnd", this.render, false);
+        this.element.addEventListener(&quot;webkitTransitionEnd&quot;, this.render, false);
+        this.element.addEventListener(&quot;transitionend&quot;, this.render, false);
+        this.element.addEventListener(&quot;oTransitionEnd&quot;, this.render, false);
     };
 
-    /**
-     *
+<span id='ProfilePanel-property-prototype'>    /**
+</span>     *
      */
     ProfilePanel.prototype = {
         toggle : function (show) {
-            this.element.classList[show ? "add" : "remove"]("show");
+            this.element.classList[show ? &quot;add&quot; : &quot;remove&quot;](&quot;show&quot;);
         },
         calculateTrackProfile : function (geometry) {
             var i = 0, len = geometry.length,
@@ -115,10 +132,10 @@
             maxHeight = current[2];
             prev = current;
 
-            for (i = 1; i < len; i += 1) {
+            for (i = 1; i &lt; len; i += 1) {
                 current = geometry[i];
 
-                if (current[2] > maxHeight) {
+                if (current[2] &gt; maxHeight) {
                     maxHeight = current[2];
                 }
 
@@ -159,17 +176,17 @@
                 scaledHeight;
 
             if (canvas) {
-                height = canvas.height = this.getStyle("height");
-                width = canvas.width = this.getStyle("width");
+                height = canvas.height = this.getStyle(&quot;height&quot;);
+                width = canvas.width = this.getStyle(&quot;width&quot;);
                 scaledHeight = height * 0.75;
 
 
-                context = canvas.getContext("2d");
+                context = canvas.getContext(&quot;2d&quot;);
 
                 context.clearRect(0, 0, width, height);
                 
                 context.lineWidth = 1;
-                context.strokeStyle = "#555555";
+                context.strokeStyle = &quot;#555555&quot;;
                 context.beginPath();
                 context.moveTo(0, scaledHeight);
                 context.lineTo(width, scaledHeight);
@@ -178,7 +195,7 @@
                 context.closePath();
 
                 context.lineWidth = 2;
-                context.strokeStyle = "#ffffff";
+                context.strokeStyle = &quot;#ffffff&quot;;
                 context.beginPath();
 
                 profile.forEach(function (item, index, scope) {
@@ -197,8 +214,8 @@
         },
     };
 
-    /**
-     * Hauptklasse
+<span id='Main'>    /**
+</span>     * Hauptklasse
      * 
      */
     Main = function () {
@@ -239,13 +256,13 @@
         this.initSigns = this.initSigns.bind(this);
         this.onToggleFlyAlongPath = this.onToggleFlyAlongPath.bind(this);
 
-        this.chkShowTrack = document.querySelector("[name='show-track']");
-        this.chkShowProfile = document.querySelector("[name='show-profile']");
-        this.chkFlyAlongPath = document.querySelector("[name='fly-along-path']");
+        this.chkShowTrack = document.querySelector(&quot;[name='show-track']&quot;);
+        this.chkShowProfile = document.querySelector(&quot;[name='show-profile']&quot;);
+        this.chkFlyAlongPath = document.querySelector(&quot;[name='fly-along-path']&quot;);
 
         this.showTrack = true;
 
-        this.profilePanel = new ProfilePanel(document.querySelector(".profile"));
+        this.profilePanel = new ProfilePanel(document.querySelector(&quot;.profile&quot;));
 
         this.init();
     };
@@ -276,7 +293,7 @@
 
             this.initEventListeners();
 
-            $.get("includes/signs.json", this.initSigns);
+            $.get(&quot;includes/signs.json&quot;, this.initSigns);
         },
 
         initSigns : function (signs) {
@@ -338,8 +355,8 @@
             renderer.autoClear = false;
 
             renderer.domElement.style.position = 'absolute';
-            renderer.domElement.style.top = 0 + "px";
-            renderer.domElement.style.left = "0px";
+            renderer.domElement.style.top = 0 + &quot;px&quot;;
+            renderer.domElement.style.left = &quot;0px&quot;;
 
             this.container.appendChild(renderer.domElement);
         },
@@ -367,18 +384,18 @@
 
             this.shaderUniforms = shaderUniforms = {
                 normal: {
-                    type: "t",
+                    type: &quot;t&quot;,
                     value: 0,
-                    texture: THREE.ImageUtils.loadTexture("resources/normal.png")
+                    texture: THREE.ImageUtils.loadTexture(&quot;resources/normal.png&quot;)
                 },
                 time: {
-                    type: "f",
+                    type: &quot;f&quot;,
                     value: 1.0
                 }
             };
 
             loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/map1.ctm", this.onMeshLoaded, false, false);
+            loader.load(&quot;resources/map1.ctm&quot;, this.onMeshLoaded, false, false);
         },
 
         initPostprocessing : function () {
@@ -387,7 +404,7 @@
 
             
             loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/path.ctm", this.onTrackMashLoaded, false, true);
+            loader.load(&quot;resources/path.ctm&quot;, this.onTrackMashLoaded, false, true);
 
             xhr = new XMLHttpRequest();
             callback = this.onTrackJSONLoaded;
@@ -402,8 +419,8 @@
                 }
             };
 
-            xhr.open("GET", "resources/path.json", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.open(&quot;GET&quot;, &quot;resources/path.json&quot;, true);
+            xhr.setRequestHeader(&quot;Content-Type&quot;, &quot;application/json&quot;);
             xhr.send(null);
         },
 
@@ -495,30 +512,30 @@
 
                 intersects = ray.intersectObject(this.terrainMesh);
 
-                if (intersects.length > 0) {
+                if (intersects.length &gt; 0) {
                     point = intersects[0].point;
 
                     SignWindow.show({
-                        name : "",
+                        name : &quot;&quot;,
                         type : null,
                         position: point, 
                     }, this.onCreateSign);
 
                 }
                 else {
-                    console.log("No intersection found");
+                    console.log(&quot;No intersection found&quot;);
                 }
             }
         },
 
         onCreateSign : function (data) {
             $.ajax({
-                type : "POST",
-                url : "includes/jsonWriter.php",
+                type : &quot;POST&quot;,
+                url : &quot;includes/jsonWriter.php&quot;,
                 dataType : 'json',
                 data : {
                     json : data,
-                    p : "signs.json"
+                    p : &quot;signs.json&quot;
                 }
             });
             this.displaySign(data);
@@ -622,7 +639,7 @@
             else {
                 window.requestAnimationFrame(this.animateStart);
                 this.camera.position.z -= 250 * delta;
-                this.camera.position.z = this.camera.position.z < 2 ? 2 : this.camera.position.z;
+                this.camera.position.z = this.camera.position.z &lt; 2 ? 2 : this.camera.position.z;
             }
         },
 
@@ -652,23 +669,23 @@
             gl.colorMask(false, false, false, false);
             this.roadMesh.material.depthTest = true;
             gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
-            renderer.setFaceCulling("front");
+            renderer.setFaceCulling(&quot;front&quot;);
             renderer.render(this.postprocessing.scene, this.camera);
 
             gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
-            renderer.setFaceCulling("back");
+            renderer.setFaceCulling(&quot;back&quot;);
             renderer.render(this.postprocessing.scene, this.camera);
             gl.colorMask(true, true, true, true);
 
             //weg rendern
             gl.stencilFunc(gl.NOTEQUAL, 0, 0xFF);
-            renderer.setFaceCulling("front");
+            renderer.setFaceCulling(&quot;front&quot;);
             this.roadMesh.material.depthTest = false;
             renderer.render(this.postprocessing.scene, this.camera);
 
             //GL state zurücksetzten
             gl.disable(gl.STENCIL_TEST);
-            renderer.setFaceCulling("back");
+            renderer.setFaceCulling(&quot;back&quot;);
 
             if (this.showTrack) {
                 renderer.render(this.track, this.camera);
@@ -684,7 +701,7 @@
                     stencilBuffer: false
                 };
 
-            for (i = 0; i < len; i += 1) {
+            for (i = 0; i &lt; len; i += 1) {
                 vert = vertices[i];
                 waypoints.push(vert);
                 path.vertices.push(
@@ -716,8 +733,11 @@
     };
 
     main = new Main();
-    SignWindow.init("window-sign");
+    SignWindow.init(&quot;window-sign&quot;);
 
 }(window, document));
 
 
+</pre>
+</body>
+</html>
