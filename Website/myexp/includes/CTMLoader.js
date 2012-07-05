@@ -6,6 +6,11 @@
  *	http://code.google.com/p/js-openctm/
  *
  * @author alteredq / http://alteredqualia.com/
+ *
+ *
+ * 
+ * Check [Example][1] for more details
+ * [1]: http://mrdoob.github.com/three.js/examples/webgl_loader_ctm.html
  */
 
 THREE.CTMLoader = function ( context, showStatus ) {

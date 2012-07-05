@@ -1,5 +1,9 @@
 /**
  * @author Tim Knip / http://www.floorplanner.com/ / tim at floorplanner.com
+ *
+ * Check [GitHub][1] for example;
+ *
+ * [1]: https://github.com/mrdoob/three.js/blob/master/examples/webgl_loader_collada.html
  */
 
 THREE.ColladaLoader = function () {
