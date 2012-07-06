@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>The source code</title>
+  <link href="../resources/prettify/prettify.css" type="text/css" rel="stylesheet" />
+  <script type="text/javascript" src="../resources/prettify/prettify.js"></script>
+  <style type="text/css">
+    .highlight { display: block; background-color: #ddd; }
+  </style>
+  <script type="text/javascript">
+    function highlight() {
+      document.getElementById(location.hash.replace(/#/, "")).className = "highlight";
+    }
+  </script>
+</head>
+<body onload="prettyPrint(); highlight();">
+  <pre class="prettyprint lang-js">/*global WanderUte */
+(function (global, doc) {
+ 
+    global.WanderUte || (global.WanderUte = {});
+
+    var WanderUte = global.WanderUte;
+
+<span id='WanderUte-SignWindow-method-constructor'><span id='WanderUte-SignWindow'>    /**
+</span></span>     * Zeigt ein Fenster an, in dem sich Daten über einen Marker (Parkplatz, Toilette, Essen)
+     * eingeben und speichern lassen.
+     *
+     * @constructor Initialisiert das SignWindow.
+     * @param {String} id Id-Attributwert des HTML-Elements, das das 
+     * Fenster-HTML beinhaltet. 
+     */
+    WanderUte.SignWindow = function (id) {
+<span id='WanderUte-SignWindow-property-element'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Fensterelement */
+        this.element = document.getElementById(id);
+
+<span id='WanderUte-SignWindow-property-signType'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Eingabeelement für Markertypen */
+        this.signType = this.element.querySelector(&quot;[name='type']&quot;);
+<span id='WanderUte-SignWindow-property-signName'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Eingabeelement für Markernamen */
+        this.signName = this.element.querySelector(&quot;[name='name']&quot;);
+<span id='WanderUte-SignWindow-property-signPositionX'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Eingabeelement für x-Achsenabschnitt des Markers */
+        this.signPositionX = this.element.querySelector(&quot;[name='x']&quot;);
+<span id='WanderUte-SignWindow-property-signPositionY'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Eingabeelement für y-Achsenabschnitt des Markers */
+        this.signPositionY = this.element.querySelector(&quot;[name='y']&quot;);
+<span id='WanderUte-SignWindow-property-signPositionZ'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf das Eingabeelement für z-Achsenabschnitt des Markers */
+        this.signPositionZ = this.element.querySelector(&quot;[name='z']&quot;);
+
+<span id='WanderUte-SignWindow-property-ok'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf den OK-Button */
+        this.ok = this.element.querySelector(&quot;.ok&quot;);
+<span id='WanderUte-SignWindow-property-cancel'>        /** @property 
+</span>        * Beinhaltet eine Referenz auf den Cancel-Button */
+        this.cancel = this.element.querySelector(&quot;.cancel&quot;);
+
+        // bindet die onOK und onCancel Methoden an this, sodass innerhalb
+        // diser Methoden this IMMER auf die Instanz diese Objekts zeigen muss,
+        // selbst wenn sie z.B. als EventHandler ausgeführt werden.
+        this.onOk = this.onOk.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+
+        this.ok.addEventListener(&quot;click&quot;, this.onOk, false);
+        this.cancel.addEventListener(&quot;click&quot;, this.onCancel, false);
+
+
+<span id='WanderUte-SignWindow-property-okCallback'>        /** @property 
+</span>        * Callback, der ausgeführt werden soll, wenn auf OK geklickt wurde */
+        this.okCallback = null;
+    };
+
+
+    WanderUte.SignWindow.prototype = {
+<span id='WanderUte-SignWindow-method-show'>        /**
+</span>         * Zeigt die Fensterinstanz an.
+         * @param {Object} data Datenobjekt, das die Informationen eines
+         * Markers beinhaltet.
+         * @param {Object} data.position Position des Markers
+         * @param {Number} data.position.x X-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.y Y-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.z Z-Achsen Abschnitt der
+         * Markerposition
+         * @param {String} data.name Der Name des Markers
+         * @param {String} data.type Der Typ des markers (Dateinahme der
+         * Marker-dateien ohne Dateiendung)
+         * @param {Function} okCallback Die Funktion die ausgeführt wird, sobald
+         * der Dialog mit OK abgeschlossen wird.
+         * @param {Object} okCallback.data Ein Datenobjekt selber Struktur, wie
+         * das, das der SignWindo#show Methode mitgegeben wurde und das die Werte der
+         * Formulareingabe beinhaltet.
+         */
+        show : function (data, okCallback) {
+            this.signPositionX.value = data.position.x;
+            this.signPositionY.value = data.position.y;
+            this.signPositionZ.value = data.position.z;
+            this.signName.value = data.name;
+            this.signType.value = data.type;
+
+            this.callback = okCallback;
+
+            this.element.classList.add(&quot;show&quot;);
+        },
+
+<span id='WanderUte-SignWindow-method-close'>        /**
+</span>         * Schließt das Fenster.
+         */
+        close : function () {
+            this.element.classList.remove(&quot;show&quot;);
+        },
+
+<span id='WanderUte-SignWindow-method-onOk'>        /**
+</span>         * @private
+         * Behandelt Klicks auf den OK-Button. Ruft den OK-Callback auf und
+         * schließt das Fenster.
+         */
+        onOk : function () {
+            if (this.callback) {
+                this.callback({
+                    name : this.signName.value,
+                    type : this.signType.value,
+                    position : {
+                        x : this.signPositionX.value * 1,
+                        y : this.signPositionY.value * 1,
+                        z : this.signPositionZ.value * 1
+                    }
+                });
+            }
+            this.close();
+        },
+
+<span id='WanderUte-SignWindow-method-onCancel'>        /**
+</span>         * @private
+         * Behandelt Klicks auf den Cancel-Button. Schließt das Fenster.
+         */
+        onCancel : function () {
+            this.close();
+        }
+    };
+
+}(window, document));
+</pre>
+</body>
+</html>
