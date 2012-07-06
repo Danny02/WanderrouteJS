@@ -302,6 +302,7 @@
          * Die Haupszene, auf die die Karte gezeichnet wird.
          */
         this.scene = null;
+
         this.renderer = null;
         this.projector = null;
         this.controls = null;
@@ -320,8 +321,11 @@
          * gezeichnet wird, das dann per Stenciltest auf die Karte projeziiert
          * wird.
          */
-        this.trackProjection = null;
-        this.track = {};
+        this.trackProjection = {};
+        /** @property
+         * Scene, die den schwebenden Pfad und die Marker enthält.
+         */
+        this.trackScene = null;
 
         this.clock = new THREE.Clock();
 
@@ -334,17 +338,17 @@
         this.onTrackMashLoaded = this.onTrackMashLoaded.bind(this);
         this.onTrackJSONLoaded = this.onTrackJSONLoaded.bind(this);
         this.onCreateSign = this.onCreateSign.bind(this);
-        this.onShowTrackChange = this.onShowTrackChange.bind(this);
+        this.onShowMarker = this.onShowMarkerChange.bind(this);
         this.onShowProfileChange = this.onShowProfileChange.bind(this);
         this.displaySign = this.displaySign.bind(this);
         this.initSigns = this.initSigns.bind(this);
         this.onToggleFlyAlongPath = this.onToggleFlyAlongPath.bind(this);
 
-        this.chkShowTrack = document.querySelector("[name='show-track']");
+        this.chkShowMarker = document.querySelector("[name='show-marker']");
         this.chkShowProfile = document.querySelector("[name='show-profile']");
         this.chkFlyAlongPath = document.querySelector("[name='fly-along-path']");
 
-        this.showTrack = true;
+        this.showMarker = true;
 
         this.profilePanel = new ProfilePanel(document.querySelector(".profile"));
 
@@ -366,7 +370,7 @@
             document.body.appendChild(this.container);
 
             scene = this.scene = new THREE.Scene();
-            scene.add(new THREE.AxisHelper());
+            //scene.add(new THREE.AxisHelper());
 
             this.initCamera(); 
 
@@ -377,8 +381,7 @@
             this.onWindowResize();
 
             this.initTerrain();
-            this.initPostprocessing();
-
+            this.initTrackProjection();
             this.initEventListeners();
 
             $.get("includes/signs.json", this.initSigns);
@@ -391,10 +394,13 @@
          */ 
         initSigns : function (signs) {
             var that = this;
-            if (this.terrainMesh !== null) {
+            if (this.trackScene !== null) {
+                // create signs and append to track scene
                 signs.forEach(this.displaySign);
             }
             else {
+                // wait 500ms and check again if the track scene is available
+                // now.
                 window.setTimeout(function () {
                     that.initSigns(signs);
                 }, 500);
@@ -420,7 +426,7 @@
         /**
          * Initialisiert die Steuerelemente.
          * @private
-         * @param {Array} [keys=65,83,68] Die drei Tasten, mit denen
+         * @param {Array} [keys=[65,83,68]] Die drei Tasten, mit denen
          * THREE.TrackballControls gesteuert werden können.
          */ 
         initControls : function (keys) {
@@ -475,7 +481,7 @@
             window.addEventListener('resize', this.onWindowResize, false);
             this.container.addEventListener('mousedown', this.onDocumentMouseDown, true);
             this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
-            this.chkShowTrack.addEventListener('change', this.onShowTrackChange, false);
+            this.chkShowMarker.addEventListener('change', this.onShowTrackChange, false);
             this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
         },
 
@@ -488,11 +494,11 @@
         },
 
         /**
-         * Behandlt Änderungen der "Strecke anzeigen" Checkbox.
+         * Behandlt Änderungen der "Marker anzeigen" Checkbox.
          * @private 
          */ 
-        onShowTrackChange : function () {
-            this.showTrack = this.chkShowTrack.checked;
+        onShowMarkerChange : function () {
+            this.showMarker = this.chkShowMarker.checked;
         },
 
         /**
@@ -660,44 +666,92 @@
             }
         },
 
+        /**
+         * Behandelt MouseDown Events. 
+         * @private
+         * @param {MouseEvent} e MouseEvent. 
+         */
         onDocumentMouseDown : function (e) {
             if (e.button === 2) {
                 e.preventDefault();
-
-                var camera = this.camera,
-                    vector = new THREE.Vector3((e.clientX / this.SCREEN_WIDTH) * 2 - 1,
-                        - (e.clientY / this.SCREEN_HEIGHT) * 2 + 1,
-                        // Percentage of diff between near and far to go towards far
-                        // starting at near to determine intersection.
-                        // @see https://github.com/sinisterchipmunk/jax/blob/5d392c9d67cb9ae5623dc03846027c473f625925/src/jax/webgl/camera.js#L568
-                        0.2),
-                    ray,
-                    intersects,
-                    point, 
-                    cube;
-
-                this.projector.unprojectVector(vector, camera);
-
-                ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
-
-                intersects = ray.intersectObject(this.terrainMesh);
-
+                var intersects = this.mousePositionToPointOnMap(e.clientX, e.clientY);
                 if (intersects.length > 0) {
-                    point = intersects[0].point;
-
-                    SignWindow.show({
-                        name : "",
-                        type : null,
-                        position: point, 
-                    }, this.onCreateSign);
-
+                    this.showSignWindow(intersects[0].point); 
                 }
                 else {
-                    console.log("No intersection found");
+                    console.log("No intersections found");
                 }
             }
         },
 
+        /**
+         * Projeziert den Punkte (x, y) des Bildauschnitts in das
+         * Weltkoordinatensystem der Karte und ermittlet den Schnittpunkt mit
+         * der Karte.
+         * @private
+         * @param {Number} x Mausposition auf der x-Achse
+         * @param {Number} y Mausposition auf der y-Achse
+         * @return {Array} intersects Liste der Schnittpunkte.
+         */
+        mousePositionToPointOnMap : function (x, y) {
+            var camera = this.camera,
+                vector = new THREE.Vector3((x / this.SCREEN_WIDTH) * 2 - 1,
+                    - (y / this.SCREEN_HEIGHT) * 2 + 1,
+                    // Percentage of diff between near and far to go towards far
+                    // starting at near to determine intersection.
+                    // @see https://github.com/sinisterchipmunk/jax/blob/5d392c9d67cb9ae5623dc03846027c473f625925/src/jax/webgl/camera.js#L568
+                    0.2),
+                ray,
+                intersects;
+
+            this.projector.unprojectVector(vector, camera);
+
+            ray = new THREE.Ray(camera.position, vector.subSelf(camera.position).normalize());
+
+            intersects = ray.intersectObject(this.terrainMesh);
+
+            return intersects;
+        },
+
+        /**
+         * Öffnet das Fenster zum Erstellen eines neuen Markers.
+         * @param {Object} data Datenobjekt, das die Informationen eines
+         * Markers beinhaltet.
+         * @param {Object} data.position Position des Markers
+         * @param {Number} data.position.x X-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.y Y-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.z Z-Achsen Abschnitt der
+         * Markerposition
+         * @param {String} data.name Der Name des Markers
+         * @param {String} data.type Der Typ des markers (Dateinahme der
+         * Marker-dateien ohne Dateiendung)
+         */
+        showSignWindow : function (data) {
+            SignWindow.show({
+                name : data.name || "",
+                type : data.type || null,
+                position: data.position || {x : "", y : "", z : ""} 
+            }, this.onCreateSign);
+        },
+
+        /**
+         * Erstellt ein neues Zeichen und speichert es auf dem Server.
+         * @private
+         * @param {Object} data Datenobjekt, das die Informationen eines
+         * Markers beinhaltet.
+         * @param {Object} data.position Position des Markers
+         * @param {Number} data.position.x X-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.y Y-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.z Z-Achsen Abschnitt der
+         * Markerposition
+         * @param {String} data.name Der Name des Markers
+         * @param {String} data.type Der Typ des markers (Dateinahme der
+         * Marker-dateien ohne Dateiendung)
+         */
         onCreateSign : function (data) {
             $.ajax({
                 type : "POST",
@@ -711,58 +765,28 @@
             this.displaySign(data);
         },
 
-        onToggleFlyAlongPath : function (e) {
-            if (!this.flying) {
-                this.startFlying();
-            }
-            else {
-                this.stopFlying();
-            }
-        },
-
-        startFlying : function () {
-            this.fying = true;
 
 
-            this.origControls = this.controls;
-            this.origCameraPosition = this.camera.position;
-
-            var controls = new THREE.PathControls(this.camera);
-
-            controls.waypoints = this.waypoints;
-            controls.duration = 28;
-            controls.useConstantSpeed = true;
-            //controls.createDebugPath = true;
-            //controls.createDebugDummy = true;
-            controls.lookSpeed = 0.06;
-            controls.lookVertical = false;
-            controls.lookHorizontal = false;
-            controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
-            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
-            controls.lon = 180;
-            controls.lat = 0;
-
-            this.controls = controls;
-            this.controls.init();
-
-            this.scene.add(controls.animationParent);
-
-            controls.animation.play(true, 0);
-        },
-
-        stopFlying : function () {
-            this.flying = false;
-            this.controls.animation.stop();
-            this.camera.position = this.origCameraPosition;
-            this.scene.remove(this.controls.animationParent);
-            this.controls = this.origControls;
-            this.controls.init();
-        },
-
+        /**
+         * Läd den Marker per THREE.ColladaLoader und fügt ihn dann in
+         * Main#trackScene ein.
+         * @param {Object} data Datenobjekt, das die Informationen eines
+         * Markers beinhaltet.
+         * @param {Object} data.position Position des Markers
+         * @param {Number} data.position.x X-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.y Y-Achsen Abschnitt der
+         * Markerposition
+         * @param {Number} data.position.z Z-Achsen Abschnitt der
+         * Markerposition
+         * @param {String} data.name Der Name des Markers
+         * @param {String} data.type Der Typ des markers (Dateinahme der
+         * Marker-dateien ohne Dateiendung)
+         */
         displaySign : function (data) {
             var loader = new THREE.ColladaLoader(),
                 material,
-                terrainMesh = this.terrainMesh;
+                trackScene = this.trackScene;
 
             loader.convertUpAxis = true;
             loader.load('resources/models/' + data.type + '.dae', function (collada) {
@@ -770,21 +794,28 @@
 
                 THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) { 
                     object.scale.set(0.01, 0.01, 0.01);
-                    object.position.set(data.position.x, data.position.y, data.position.z + 0.05);
+                    object.position.set(data.position.x * 1, data.position.y * 1, data.position.z * 1 + 0.05);
                     /*if (object.material) {
                         object.material = new THREE.MeshBasicMaterial({ wireframe: true });
                     }*/
                     if ((material = object.material)) {
                         object.material = new THREE.MeshBasicMaterial({
+                            color : 0xFFFFFF,
                             map: material.map, 
                             morphTargets: material.morphTargets
                         });
                     }
                 });
-                terrainMesh.add(collada.scene);
+                trackScene.add(collada.scene);
             });
         },
 
+        /**
+         * Behandelt window resize Events, indem die Cameraposition neu
+         * berechnet.
+         * @private
+         * @param {Event} event Resize-Event
+         */
         onWindowResize : function (event) {
             this.SCREEN_WIDTH = window.innerWidth;
             this.SCREEN_HEIGHT = window.innerHeight;
@@ -795,6 +826,13 @@
             this.camera.updateProjectionMatrix();
         },
 
+        /**
+         * Animations-Schleife, die zu Beginn des Renderings aufgerufen wird und
+         * für das Hineinfliegen in die Karte zuständig ist. Nachdem
+         * Main#camera.position.z < 2 ist, wird im Folgenden Main#animate
+         * aufgerufen.
+         * @private
+         */
         animateStart : function () {
             var delta = this.clock.getDelta();
 
@@ -813,6 +851,10 @@
             }
         },
 
+        /**
+         * Hauptanimations-Scheife. 
+         * @private
+         */
         animate : function () {
             var delta = this.clock.getDelta();
 
@@ -823,6 +865,12 @@
             window.requestAnimationFrame(this.animate);
         },
 
+        /**
+         * Zeichnet die Karte und die Projektion darauf. 
+         * Sofern Main#showMarker auf true gesetzt ist, wird auch der Track als
+         * Linie, sowie die Marker gezeichnet.
+         * @private
+         */
         render : function () {
             var renderer = this.renderer,
                 gl = renderer.getContext();
@@ -857,11 +905,17 @@
             gl.disable(gl.STENCIL_TEST);
             renderer.setFaceCulling("back");
 
-            if (this.showTrack) {
-                renderer.render(this.track, this.camera);
+            if (this.showMarker) {
+                renderer.render(this.trackScene, this.camera);
             }
         },
 
+        /**
+         * Erstellt den Pfad aus einem Array von Wegpunkten.
+         * @private
+         * @param {Array} vertices Liste der Wegpunkte in der Form [x, y, z],
+         * die den Pfad beschreiben.
+         */
         createPath : function (vertices) {
             var path = new THREE.Geometry(), 
                 waypoints = [],
@@ -869,7 +923,8 @@
                 options = {
                     minFilter: THREE.LinearFilter,
                     stencilBuffer: false
-                };
+                },
+                light;
 
             for (i = 0; i < len; i += 1) {
                 vert = vertices[i];
@@ -896,9 +951,71 @@
             
             track.position.set(-0.5, -0.5, 0.005);
             //track.rotation.x = -0.8;
-            this.track = new THREE.Scene();
+            this.trackScene = new THREE.Scene();
 
-            this.track.add(track);
+            this.trackScene.add(track);
+        },
+
+
+
+        /**
+         * Sofern Main#flying true ist, man also über den Pfad fliegt,
+         * wird Main#stopFlying aufgerufen, ansonsten Main#startFlying.
+         * @private
+         */
+        onToggleFlyAlongPath : function (e) {
+            if (!this.flying) {
+                this.startFlying();
+            }
+            else {
+                this.stopFlying();
+            }
+        },
+
+
+        /**
+         * Startet den Flug entlang des Pfads.
+         */
+        startFlying : function () {
+            this.fying = true;
+
+
+            this.origControls = this.controls;
+            this.origCameraPosition = this.camera.position;
+
+            var controls = new THREE.PathControls(this.camera);
+
+            controls.waypoints = this.waypoints;
+            controls.duration = 28;
+            controls.useConstantSpeed = true;
+            //controls.createDebugPath = true;
+            //controls.createDebugDummy = true;
+            controls.lookSpeed = 0.06;
+            controls.lookVertical = false;
+            controls.lookHorizontal = false;
+            controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.lon = 180;
+            controls.lat = 0;
+
+            this.controls = controls;
+            this.controls.init();
+
+            this.scene.add(controls.animationParent);
+
+            controls.animation.play(true, 0);
+        },
+
+        /**
+         * Stopt den Flug entlang des Pfads.
+         */
+        stopFlying : function () {
+            this.flying = false;
+            this.controls.animation.stop();
+            this.camera.position = this.origCameraPosition;
+            this.scene.remove(this.controls.animationParent);
+            this.controls = this.origControls;
+            this.controls.init();
         }
     };
 
