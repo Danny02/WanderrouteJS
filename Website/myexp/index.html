@@ -135,7 +135,7 @@
             </div>
         </div>
 
-        <canvas width="200" height="120" class="panel profile show"></canvas>
+        <canvas id="profile-panel" width="200" height="120" class="panel profile show"></canvas>
 
         <div class="panel" id="window-sign">
             <div class="header">
@@ -276,7 +276,12 @@
 		<script src="includes/lzma.js"></script>
 		<script src="includes/Detector.js"></script>
 
-		<script src="includes/main.js"></script>
+		<script src="includes/SignWindow.js"></script>
+		<script src="includes/ProfilePanel.js"></script>
+		<script src="includes/app.js"></script>
+        <script>
+            WanderUte.App.start();
+        </script>
 	</body>
 
 </html>

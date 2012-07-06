@@ -15,12 +15,13 @@
   </script>
 </head>
 <body onload="prettyPrint(); highlight();">
-  <pre class="prettyprint lang-js"><span id='Detector'>/**
+  <pre class="prettyprint lang-js"><span id='global-property-'>/**
 </span> * @author alteredq / http://alteredqualia.com/
  * @author mr.doob / http://mrdoob.com/
  */
 
-Detector = {
+<span id='Detector'>/** @ignore */
+</span>Detector = {
 
 	canvas: !! window.CanvasRenderingContext2D,
 	webgl: ( function () { try { return !! window.WebGLRenderingContext &amp;&amp; !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' ); } catch( e ) { return false; } } )(),

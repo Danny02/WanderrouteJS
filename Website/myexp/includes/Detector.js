@@ -3,6 +3,7 @@
  * @author mr.doob / http://mrdoob.com/
  */
 
+/** @ignore */
 Detector = {
 
 	canvas: !! window.CanvasRenderingContext2D,
