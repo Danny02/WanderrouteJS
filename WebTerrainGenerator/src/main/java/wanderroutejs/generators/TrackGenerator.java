@@ -46,7 +46,7 @@ public class TrackGenerator
     {
         return new TrackGenerator(GpxFileDataAccess.getPoints(stream));
     }
-    
+
     private final Trip trip;
 
     private TrackGenerator(List<TrackPoint> trackPoints)
@@ -76,9 +76,9 @@ public class TrackGenerator
 
         for (TrackPoint p : trip.getPoints()) {
             path.addPathElement(new Vector3(
-                    (float) p.getLat() + xOffset,
+                    (float) p.getLat() + yOffset,
                     p.getElevation() * heightScale,
-                    (float) p.getLon() + yOffset));
+                    (float) p.getLon() + xOffset));
 
         }
 

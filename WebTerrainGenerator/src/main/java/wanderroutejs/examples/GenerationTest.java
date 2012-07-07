@@ -32,7 +32,8 @@ public class GenerationTest
 
     }
     private static final int TESS_FACTOR = 100;
-    private static final float heightScale = 1f / 4500;
+    private static final float HEIGHT_SCALE = 1f / 4500;
+    private static final float NORMAL_SCALE = 0.01f;
 
     public void generate()
     {
@@ -40,7 +41,7 @@ public class GenerationTest
 
         TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
-        Path<Vector3> path = trackGenerator.getTripAsPath(heightScale,
+        Path<Vector3> path = trackGenerator.getTripAsPath(HEIGHT_SCALE,
                                                           -boundingBox.x,
                                                           -boundingBox.y);
 
@@ -70,17 +71,18 @@ public class GenerationTest
                 ex.printStackTrace();
             }
         }
-        {
-            Mesh pathPrisma = trian.buildExtrudedPrisma(0.0001f, 5f, path);
-
-            ModelWriter writer = new CtmModelWriter();
-            File pathFile = new File(OUTPUT_PATH, "path." + writer.getDefaultFileExtension());
-            try (OutputStream out = new FileOutputStream(pathFile)) {
-                writer.writeModel(out, new Model[]{new Model(pathPrisma, null)});
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
+        //TODO buged floating point math
+//        {
+//            Mesh pathPrisma = trian.buildExtrudedPrisma(0.0001f, 5f, path);
+//
+//            ModelWriter writer = new CtmModelWriter();
+//            File pathFile = new File(OUTPUT_PATH, "path." + writer.getDefaultFileExtension());
+//            try (OutputStream out = new FileOutputStream(pathFile)) {
+//                writer.writeModel(out, new Model[]{new Model(pathPrisma, null)});
+//            } catch (IOException ex) {
+//                ex.printStackTrace();
+//            }
+//        }
 
         // render path into maps
 
@@ -102,70 +104,77 @@ public class GenerationTest
     private void generateMaps(File file) throws IOException
     {
         long time;
-
         System.out.println("Start loading heightmap texture for " + file + "...");
-
         time = System.currentTimeMillis();
-        BufferedImage img = ImageUtil2.loadImage(file.toURI().toURL());
+        BufferedImage height = ImageUtil2.loadImage(file.toURI().toURL());
         System.out.println("\tFinished loading in " + (System.currentTimeMillis() - time));
 
         System.out.println("Generating ambient occlusion map ...");
         time = System.currentTimeMillis();
-        BufferedImage ambientOcclusionImg = this.generateAmbientOcclusionMap(img);
+        BufferedImage ambientOcclusionImg = generateAmbientOcclusionMap(height);
         System.out.println("\tFinished processing in " + (System.currentTimeMillis() - time));
 
+        System.out.println("Generating normal map...");
+        time = System.currentTimeMillis();
+        BufferedImage normalMap = generateNormalMap(height);
+        System.out.println("\tFinished processing in " + (System.currentTimeMillis() - time));
 
         System.out.println("Generating mesh ...");
         time = System.currentTimeMillis();
-        Model mesh = this.generateMesh(img, ambientOcclusionImg);
+        Model mesh = generateMesh(height, ambientOcclusionImg);
         System.out.println("\tFinished generating in " + (System.currentTimeMillis() - time));
 
         System.out.println("Writing mesh to file...");
         time = System.currentTimeMillis();
-        try {
-            saveMesh(mesh, file);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+
+        saveMesh(mesh, file);
+
         System.out.println("\tFinished writing in " + (System.currentTimeMillis() - time));
 
 
-        System.out.println("Generating normal map...");
-        time = System.currentTimeMillis();
-        this.generateNormalMap(img);
-        System.out.println("\tFinished writing in " + (System.currentTimeMillis() - time));
+        System.out.println("Writing texture maps...");
 
+        ImageIO.write(normalMap, "png", new File(OUTPUT_PATH, "normalmap.png"));
+        ImageIO.write(ambientOcclusionImg, "png", new File(OUTPUT_PATH, "ambientocclusion.png"));
+
+        System.out.println("\tFinished writing in " + (System.currentTimeMillis() - time));
     }
 
-    private BufferedImage generateAmbientOcclusionMap(BufferedImage img)
+    private BufferedImage generateAmbientOcclusionMap(BufferedImage img) throws IOException
     {
         int scale = 512;
-        BufferedImage img2 = new BufferedImage(scale, scale, img.getType());
         BufferedImage low = ImageUtil2.getScaledImage(img, scale, scale, false);
-        new GaussBlurOp(10).filter(low, img2);
-        new GaussBlurOp(10).filter(img2, low);
-        new GaussBlurOp(10).filter(low, img2);
 
-        BufferedImage normal2 = new BufferedImage(img2.getWidth(), img2.getHeight(), BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp().filter(img2, normal2);
-        BufferedImage ao = new AmbientOcclusionOp(64, 16, 20).filter(img2, normal2);
+        //blur the image several times
+        BufferedImageOp gauss = new GaussBlurOp(10);
+        BufferedImage pingPongBuffer = new BufferedImage(scale, scale, img.getType());
+        gauss.filter(low, pingPongBuffer);
+        gauss.filter(pingPongBuffer, low);
+        gauss.filter(low, pingPongBuffer);
+
+        BufferedImage normal2 = new BufferedImage(scale, scale, BufferedImage.TYPE_INT_RGB);
+        new NormalGeneratorOp(NORMAL_SCALE).filter(pingPongBuffer, normal2);
+        BufferedImage ao = new AmbientOcclusionOp(64, 16, 20).filter(pingPongBuffer, normal2);
+
+        BufferedImage hout = new BufferedImage(pingPongBuffer.getWidth(), pingPongBuffer.getHeight(), pingPongBuffer.getType());
+        new RescaleOp(30, 30, null).filter(pingPongBuffer, hout);
+        ImageIO.write(hout, "png", new File(OUTPUT_PATH, "heihgtmap.png"));
         return ao;
     }
 
-    private Model generateMesh(BufferedImage img,
-                               BufferedImage ambientOcclusionImg)
+    private Model generateMesh(BufferedImage height,
+                               BufferedImage ambient)
     {
-        HeightSource ambient = new ImageHeightSource(ambientOcclusionImg, TESS_FACTOR * 3, 1f / 255);
-        HeightmapGenerator generator = new GridHeightmap(TESS_FACTOR, ambient);
-        HeightSource source = new ImageHeightSource(img, TESS_FACTOR * 3, heightScale);
+        HeightSource ambientSource = new ImageHeightSource(ambient, TESS_FACTOR * 3, 1f / 255);
+        HeightmapGenerator generator = new GridHeightmapWithNormals(TESS_FACTOR, ambientSource, height);
 
+        HeightSource source = new ImageHeightSource(height, TESS_FACTOR * 3, HEIGHT_SCALE);
         Mesh mesh = generator.generateVertexData(source);
-        Model m = new Model(mesh, null);
 
-        return m;
+        return new Model(mesh, null);
     }
 
-    private void saveMesh(Model mesh, File file) throws FileNotFoundException, IOException
+    private void saveMesh(Model mesh, File file) throws IOException
     {
         ModelWriter writer = new CtmModelWriter();
         try (OutputStream out = new FileOutputStream(file.getPath() + '.' + writer.getDefaultFileExtension());) {
@@ -173,29 +182,12 @@ public class GenerationTest
         }
     }
 
-    private void generateNormalMap(BufferedImage img)
+    private BufferedImage generateNormalMap(BufferedImage img)
     {
         BufferedImage normal = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp().filter(img, normal);
+        new NormalGeneratorOp(NORMAL_SCALE).filter(img, normal);
 
-        int a = 512;
-        BufferedImage img2 = new BufferedImage(a, a, img.getType());
-        new GaussBlurOp(5).filter(ImageUtil2.getScaledImage(img, a, a, false), img2);
-
-        BufferedImage normal2 = new BufferedImage(img2.getWidth(), img2.getHeight(), BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp().filter(img2, normal2);
-        BufferedImage ao = new AmbientOcclusionOp(64, 16, 20).filter(img2, normal2);
-
-        BufferedImageOp op = new RescaleOp(60, 60, null);
-        BufferedImage adjustedHeight = op.createCompatibleDestImage(img, img.getColorModel());
-        op.filter(img, adjustedHeight);
-
-        try {
-            ImageIO.write(normal, "png", new File(OUTPUT_PATH, "normalmap.png"));
-            ImageIO.write(ao, "png", new File(OUTPUT_PATH, "ambientocclusion.png"));
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        return normal;
     }
 
     public static void main(String[] args)

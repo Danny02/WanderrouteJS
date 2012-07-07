@@ -65,9 +65,13 @@ public class NormalGeneratorOp implements BufferedImageOp
                 int vx = data[0][0] - data[2][0] + data[0][1] * 2 - data[2][1] * 2 + data[0][2] - data[2][2];
                 int vy = data[0][0] + 2 * data[1][0] + data[2][0] - data[0][2] - 2 * data[1][2] - data[2][2];
 
-                double vz = zScale * Math.sqrt(Short.MAX_VALUE * 20 - vx * vx - vy * vy);
 
-                double nlength = Math.sqrt(2 * vx * vx + 2 * vy * vy + vz * vz);
+                double diag = Math.sqrt(vx * vx + vy * vy);
+
+                double r =  Short.MAX_VALUE;
+                double vz = zScale * Math.sqrt(r * r - diag * diag);
+
+                double nlength = Math.sqrt(vx * vx + vy * vy + vz * vz);
 
                 double nx, ny, nz = 0;
                 if (nlength != 0) {

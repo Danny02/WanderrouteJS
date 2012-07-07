@@ -7,7 +7,7 @@
     global.WanderUte || (global.WanderUte = {});
 
     var WanderUte = global.WanderUte;
-    
+
     /**
      * Die Hauptklasse, die für das initialisieren und den Ablauf der
     * render-Schleife zuständig ist.
@@ -21,7 +21,7 @@
         this.container = null;
 
         this.camera = null;
-        /** @property 
+        /** @property
          * Die Haupszene, auf die die Karte gezeichnet wird.
          */
         this.scene = null;
@@ -39,7 +39,7 @@
         this.itemsToLoad = 3;
         this.itemsLoaded = 0;
 
-        /** @property 
+        /** @property
          * Enthält die sekundäre Szene, in die das Pfad-Prisma
          * gezeichnet wird, das dann per Stenciltest auf die Karte projeziiert
          * wird.
@@ -52,7 +52,7 @@
 
         this.clock = new THREE.Clock();
 
-    
+
         this.animate = this.animate.bind(this);
         this.animateStart = this.animateStart.bind(this);
         this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
@@ -81,9 +81,9 @@
 
     WanderUte.App.prototype = {
         /**
-         * Initialisiert alles was nötig ist um die Karte zu zeichnen. 
+         * Initialisiert alles was nötig ist um die Karte zu zeichnen.
          * @private
-         */ 
+         */
         init : function () {
             var scene, projector, that = this;
 
@@ -96,11 +96,11 @@
             scene = this.scene = new THREE.Scene();
             //scene.add(new THREE.AxisHelper());
 
-            this.initCamera(); 
+            this.initCamera();
 
             this.projector = projector = new THREE.Projector();
 
-            this.initRenderer(); 
+            this.initRenderer();
 
             this.onWindowResize();
 
@@ -115,7 +115,7 @@
          * Initialisiert die Marker
          * @private
          * @param {Array} signs Ein Array von Markern.
-         */ 
+         */
         initSigns : function (signs) {
             var that = this;
             if (this.trackScene !== null) {
@@ -134,12 +134,12 @@
         /**
          * Initialisiert die Camera
          * @private
-         */ 
+         */
         initCamera : function () {
             //camera
-            var camera = this.camera = new THREE.PerspectiveCamera(20, 
-                                                                   this.SCREEN_WIDTH / this.SCREEN_HEIGHT, 
-                                                                   1, 
+            var camera = this.camera = new THREE.PerspectiveCamera(20,
+                                                                   this.SCREEN_WIDTH / this.SCREEN_HEIGHT,
+                                                                   1,
                                                                    2000);
             camera.position.x = 0;
             camera.position.y = 0;
@@ -152,7 +152,7 @@
          * @private
          * @param {Array} [keys=[65,83,68]] Die drei Tasten, mit denen
          * THREE.TrackballControls gesteuert werden können.
-         */ 
+         */
         initControls : function (keys) {
             keys || (keys = [/*A*/ 65, /*S*/ 83, /*D*/ 68]);
 
@@ -199,7 +199,7 @@
         /**
          * Initialisiert die event listener.
          * @private
-         */ 
+         */
         initEventListeners : function () {
             //doc.addEventListener('mousemove', onDocumentMouseMove, false);
             global.addEventListener('resize', this.onWindowResize, false);
@@ -211,16 +211,16 @@
 
         /**
          * Behandlt Änderungen der "Profil anzeigen" Checkbox.
-         * @private 
-         */ 
+         * @private
+         */
         onShowProfileChange : function (e) {
             this.profilePanel.toggle(e.target.checked);
         },
 
         /**
          * Behandlt Änderungen der "Marker anzeigen" Checkbox.
-         * @private 
-         */ 
+         * @private
+         */
         onShowMarkerChange : function () {
             this.showMarker = this.chkShowMarker.checked;
         },
@@ -229,17 +229,17 @@
          * Initialisiert das Kartenterrain, indem die Terraindaten mittels
          * THREE.CTMLoader geladen werden. Sobald der Ladevorgang abgeschlossen
          * ist, wird Main#onMeshLoaded aufgerufen.
-         * @private 
-         */ 
+         * @private
+         */
         initTerrain : function () {
             var loader,
                 shaderUniforms;
 
             this.shaderUniforms = shaderUniforms = {
-                normal: {
+                normalMap: {
                     type: "t",
                     value: 0,
-                    texture: THREE.ImageUtils.loadTexture("resources/normal.png")
+                    texture: THREE.ImageUtils.loadTexture("resources/normalmap.png")
                 },
                 time: {
                     type: "f",
@@ -248,7 +248,7 @@
             };
 
             loader = new THREE.CTMLoader(this.renderer.context);
-            loader.load("resources/map1.ctm", this.onMeshLoaded, false, false);
+            loader.load("resources/map.ctm", this.onMeshLoaded, false, false);
         },
 
 
@@ -265,7 +265,7 @@
             var loader,
                 xhr, callback;
 
-            
+
             loader = new THREE.CTMLoader(this.renderer.context);
             loader.load("resources/path.ctm", this.onTrackMashLoaded, false, true);
 
@@ -301,10 +301,10 @@
          * geladen wurde.
          * Initialisiert ein Three.Mesh objekt mit dieser Geometrie und fügt
          * dieses der Haupszene hinzu.
-         * @private 
+         * @private
          * @param {THREE.Geometry} geometry. Objekt, dass die Geoetrie der
          * Karte enthält.
-         */ 
+         */
         onMeshLoaded : function (geometry) {
             var shaderMaterial = new THREE.ShaderMaterial({
                     uniforms : this.shaderUniforms,
@@ -325,7 +325,7 @@
          * Callback, der ausgeführt wird, sobald das Mesh des Pfades
          * vollständig geladen ist.
          * Bereitet dann das Trackprisma für die Projektion auf die Karte vor
-         * und platziert es an der richtigen Stelle im Raum und fügt es der 
+         * und platziert es an der richtigen Stelle im Raum und fügt es der
          * Trackprojektions-Szene hinzu.
          * @private
          * @param {THREE.Geometry} geometry. Objekt, dass die Geoetrie der
@@ -391,16 +391,16 @@
         },
 
         /**
-         * Behandelt MouseDown Events. 
+         * Behandelt MouseDown Events.
          * @private
-         * @param {MouseEvent} e MouseEvent. 
+         * @param {MouseEvent} e MouseEvent.
          */
         onDocumentMouseDown : function (e) {
             if (e.button === 2) {
                 e.preventDefault();
                 var intersects = this.mousePositionToPointOnMap(e.clientX, e.clientY);
                 if (intersects.length > 0) {
-                    this.showSignWindow(intersects[0].point); 
+                    this.showSignWindow(intersects[0].point);
                 }
                 else {
                     console.log("No intersections found");
@@ -456,7 +456,7 @@
             this.signWindow.show({
                 name : data.name || "",
                 type : data.type || null,
-                position: position || {x : "", y : "", z : ""} 
+                position: position || {x : "", y : "", z : ""}
             }, this.onCreateSign);
         },
 
@@ -516,7 +516,7 @@
             loader.load('resources/models/' + data.type + '.dae', function (collada) {
                 //var hlMaterial = new THREE.MeshPhongMaterial({color: 0x750004});
 
-                THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) { 
+                THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) {
                     object.scale.set(0.01, 0.01, 0.01);
                     object.position.set(data.position.x * 1, data.position.y * 1, data.position.z * 1 + 0.05);
                     /*if (object.material) {
@@ -525,7 +525,7 @@
                     if ((material = object.material)) {
                         object.material = new THREE.MeshBasicMaterial({
                             color : 0xFFFFFF,
-                            map: material.map, 
+                            map: material.map,
                             morphTargets: material.morphTargets
                         });
                     }
@@ -576,7 +576,7 @@
         },
 
         /**
-         * Hauptanimations-Scheife. 
+         * Hauptanimations-Scheife.
          * @private
          */
         animate : function () {
@@ -584,13 +584,13 @@
 
             THREE.AnimationHandler.update(delta);
             this.controls.update(delta);
-            
+
             this.render();
             global.requestAnimationFrame(this.animate);
         },
 
         /**
-         * Zeichnet die Karte und die Projektion darauf. 
+         * Zeichnet die Karte und die Projektion darauf.
          * Sofern Main#showMarker auf true gesetzt ist, wird auch der Track als
          * Linie, sowie die Marker gezeichnet.
          * @private
@@ -641,7 +641,7 @@
          * die den Pfad beschreiben.
          */
         createPath : function (vertices) {
-            var path = new THREE.Geometry(), 
+            var path = new THREE.Geometry(),
                 waypoints = [],
                 vert, i, len = vertices.length, track,
                 options = {
@@ -654,9 +654,9 @@
                 vert = vertices[i];
                 waypoints.push(vert);
                 path.vertices.push(
-                    new THREE.Vector3(vert[0] - parseInt(vert[0], 10), 
-                        vert[1] - parseInt(vert[1], 10), 
-                        vert[2]) 
+                    new THREE.Vector3(vert[0] - parseInt(vert[0], 10),
+                        vert[1] - parseInt(vert[1], 10),
+                        vert[2])
                 );
             }
 
@@ -672,7 +672,7 @@
                 vertexColors : false,
                 fog : false
             }), THREE.LineStrip);
-            
+
             track.position.set(-0.5, -0.5, 0.005);
             //track.rotation.x = -0.8;
             this.trackScene = new THREE.Scene();
