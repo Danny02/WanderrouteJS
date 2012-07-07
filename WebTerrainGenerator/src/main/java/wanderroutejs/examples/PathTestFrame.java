@@ -16,42 +16,32 @@
  */
 package wanderroutejs.examples;
 
-import de.alarie.osmxmlreader.*;
 import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
-import java.util.*;
-import java.util.List;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import javax.swing.*;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
-import sun.net.util.URLUtil;
 import wanderroutejs.PathTriangulator;
-import wanderroutejs.datasources.*;
-import wanderroutejs.imageprocessing.ImageUtil2;
-import wanderroutejs.io.PlainJSONModelWriter;
+import wanderroutejs.generators.TrackGenerator;
 
-import darwin.geometrie.io.ModelWriter;
-import darwin.geometrie.unpacked.Model;
-import darwin.util.math.base.vector.Vector2;
+import darwin.util.math.base.vector.*;
 import darwin.util.math.composits.*;
 
 /**
  *
  * @author daniel
  */
-public class PathTestFrame extends JFrame {
-
+public class PathTestFrame extends JFrame
+{
     private final BufferedImage image;
 
-    public PathTestFrame(BufferedImage imageOrg) {
-        image = new BufferedImage(imageOrg.getWidth(), imageOrg.getHeight(), imageOrg.getType());
-        new RescaleOp(60, 60, null).filter(imageOrg, image);
+    public PathTestFrame(int scale)
+    {
+        image = new BufferedImage(scale, scale, BufferedImage.TYPE_INT_RGB);
 
         JLabel label = new JLabel(new ImageIcon(image));
         getContentPane().add(label);
 
-        setPreferredSize(new Dimension(512, 512));
+        setPreferredSize(new Dimension(scale + 50, scale + 50));
         pack();
         setVisible(true);
         setLocationRelativeTo(null);
@@ -59,66 +49,36 @@ public class PathTestFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    public void drawPath(Path<Vector2> path) {
+    public void drawPath(Path<Vector3> path)
+    {
         Graphics2D g = (Graphics2D) image.getGraphics();
 
         g.setColor(Color.RED);
-        Vector2 imgDim = new Vector2(image.getWidth(), image.getHeight());
-        for (LineSegment<Vector2> ls : path) {
-            Vector2 s = ls.getStart().clone();
-            s.sub(new Vector2(50, 11)).mul(imgDim);
+        ImmutableVector<Vector3> imgDim = new Vector3(image.getWidth(), 0, image.getHeight());
+        ImmutableVector<Vector3> imgOfset = new Vector3(100, 0, 400);
+        for (LineSegment<Vector3> ls : path) {
+            float scale = 4;
+            float[] start = ls.getStart().clone().mul(imgDim).sub(imgOfset).mul(scale).getCoords();
+            float[] end = ls.getEnd().clone().mul(imgDim).sub(imgOfset).mul(scale).getCoords();
 
-            Vector2 e = ls.getEnd().clone();
-            e.sub(new Vector2(50, 11)).mul(imgDim);
-            float[] start = s.getCoords();
-            float[] end = e.getCoords();
-
-            g.drawLine((int) start[0], (int) start[1],
-                    (int) end[0], (int) end[1]);
+            g.drawLine((int) start[0], (int) start[2],
+                       (int) end[0], (int) end[2]);
         }
 
     }
 
-    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
-        BufferedImage imageOrg = ImageUtil2.loadImage(PathTestFrame.class.getResource("/examples/N50E011.hgt"));
+    public static void main(String[] args)
+    {
+        InputStream in = GenerationTest.class.getResourceAsStream("/examples/untreusee-1206956.gpx");
+        TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
+        Rectangle boundingBox = trackGenerator.getTripBoundingBox();
+        Path<Vector3> path = trackGenerator.getTripAsPath(4500,
+                                                          -boundingBox.x,
+                                                          -boundingBox.y);
 
-        List<Path<Vector2>> paths = new ArrayList<>(10000);
-
-        OSMFileParser parser = new OSMFileParser();
-        String baseName = "/examples/roadsN50E11.osm.part";
-        for (int x = 0; x < 4; x++) {
-            for (int y = 0; y < 4; y++) {
-                InputStream input = PathTestFrame.class.getResourceAsStream(baseName + x + y);
-                if (input == null) {
-                    throw new IOException("Could not find: " + baseName + x + y);
-                }
-
-                Collection<OSMWayObject> objects = parser.parse(input);
-                for (OSMWayObject o : objects) {
-                    paths.add(o.getPath());
-                }
-            }
-        }
-
-        System.out.println("start drawing..");
-        PathTestFrame frame = new PathTestFrame(imageOrg);
-        for (Path<Vector2> p : paths) {
-            frame.drawPath(p);
-        }
-        frame.repaint();
-        System.out.println("drawing finished!");
-
-        PathTriangulator tria = new PathTriangulator();
-        HeightSource source = new ImageHeightSource(imageOrg, 1f / 6000);
-
-        System.out.println("start exporting mesh..");
-        ModelWriter writer = new PlainJSONModelWriter();
-        try (OutputStream out = new FileOutputStream("test.json")) {
-            for (Path<Vector2> p : paths) {
-                Model[] models = new Model[]{new Model(tria.buildPathMesh(p, source), null)};
-                writer.writeModel(out, models);
-            }
-        }
-        System.out.println("exporting finished!");
+        PathTestFrame frame = new PathTestFrame(512);
+        PathTriangulator trian = new PathTriangulator();
+        path = trian.simplify(path, 2.7);
+        frame.drawPath(path);
     }
 }

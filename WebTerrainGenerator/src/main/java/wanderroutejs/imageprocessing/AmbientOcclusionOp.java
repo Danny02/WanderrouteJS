@@ -83,13 +83,13 @@ public class AmbientOcclusionOp
                     Vector3 dir = new Vector3(sx, sy, tmp[0]).sub(position);
                     double lenSqrt = sqrt(dir.length());
                     double cosa = dir.normalize().dot(normal);
-                    if (cosa > 0) {
+                    if (cosa >= 0.) {
                         sumOcclusion += cosa / lenSqrt;
                     } else {
-                        sumOcclusion += (1 - cosa) / lenSqrt;
+                        sumOcclusion += (2 -cosa) / lenSqrt;
                     }
                 }
-                sumOcclusion /= count;
+                sumOcclusion /= count * 2;
 
                 dest.getRaster().setPixel(x, y, new int[]{(int) (sumOcclusion * 255)});
             }

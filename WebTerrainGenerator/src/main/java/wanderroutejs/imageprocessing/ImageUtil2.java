@@ -17,10 +17,8 @@
 package wanderroutejs.imageprocessing;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.io.IOException;
-import java.io.InputStream;
+import java.awt.image.*;
+import java.io.*;
 import java.net.URL;
 import java.util.Iterator;
 import javax.imageio.*;

@@ -134,6 +134,60 @@ public class PathTriangulator
         return new Mesh(indices, vb, GL.GL_TRIANGLES);
     }
 
+    public <E extends Vector<E>> Path<E> simplify(Path<E> path, double threshold)
+    {
+        if (path.size() < 3) {
+            return path;
+        }
+
+        Path<E> newPath = new Path<>();
+        Iterator<LineSegment<E>> segments = path.iterator();
+
+        int discardCount = 0;
+
+        LineSegment<E> last = segments.next();
+        while (true) {
+            ImmutableVector<E> start = last.getStart();
+
+            newPath.addPathElement(last.getStart());
+            last = segments.next();
+
+            E dir1 = start.clone().sub(last.getStart());
+            E dir2 = start.clone().sub(last.getEnd());
+            E dir3 = last.getStart().clone().sub(last.getEnd());
+
+            double a = dir1.length();
+            double b = dir2.length();
+            double c = dir3.length();
+            double s = (a+b+c) * 0.5;
+            double area = Math.sqrt(s*(s-a)*(s-b)*(s-c));
+
+            if(Double.isNaN(area))
+            {
+            dir1 = start.clone().sub(last.getStart());
+            }
+
+            System.out.println(area);
+            if (area < threshold) {
+                discardCount++;
+                if (!segments.hasNext()) {
+                    break;
+                }
+                last = segments.next();
+            }
+
+            if (!segments.hasNext()) {
+                newPath.addPathElement(last.getStart());
+                break;
+            }
+        }
+
+        System.out.println("discarded: " + discardCount + '(' + (discardCount / (float) path.size() * 100) + "%)");
+
+        newPath.addPathElement(last.getEnd());
+        return newPath;
+    }
+
     private int[] triangulate(int a, int b, int c, int d)
     {
         return new int[]{a, b, c,
@@ -212,52 +266,14 @@ public class PathTriangulator
         Line<E> secondLeft = Line.fromPoints(last.clone().add(left), mid.clone().add(left));
         Line<E> secondRight = Line.fromPoints(last.clone().add(right), mid.clone().add(right));
 
-
-        return new Vector3[]{
-                    firstLeft.getIntersection(secondLeft),
-                    firstRight.getIntersection(secondRight)
-                };
-    }
-
-    public static void main(String[] args) throws IOException
-    {
-        Path<Vector2> path = new Path<>();
-        path.addPathElement(new Vector2(0.1f, 0.1f));
-        path.addPathElement(new Vector2(0.5f, 0.15f));
-        path.addPathElement(new Vector2(0.55f, 0.25f));
-        path.addPathElement(new Vector2(0.55f, 0.45f));
-        path.addPathElement(new Vector2(0.25f, 0.55f));
-        path.addPathElement(new Vector2(0.27f, 0.65f));
-        path.addPathElement(new Vector2(0.87f, 0.95f));
-
-        PathTriangulator trian = new PathTriangulator();
-
-        int size = 500;
-        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2 = image.createGraphics();
-        g2.setColor(Color.RED);
-
-        Polygon poly = new Polygon();
-        for (ImmutableVector<Vector2> v : trian.buildExtrudedPolygon(path, 0.01f)) {
-            int x = (int) (v.getCoords()[0] * size);
-            int y = (int) (v.getCoords()[1] * size);
-            poly.addPoint(x, y);
-        }
-        g2.fillPolygon(poly);
-
-        ImageFrame frame = new ImageFrame(550, 550);
-        frame.addImage(image);
-//
-        Mesh prismaMesh = trian.buildExtrudedPrisma(path, 0.01f, 5);
-        try (FileOutputStream out = new FileOutputStream("path.ctm")) {
-            ModelWriter writer = new CtmModelWriter();
-            writer.writeModel(out, new Model[]{new Model(prismaMesh, null)});
-        }
-
-        Mesh pathMesh = trian.buildPathMesh(path, null);
-        try (FileOutputStream out = new FileOutputStream("path.json")) {
-            ModelWriter writer = new PlainJSONModelWriter();
-            writer.writeModel(out, new Model[]{new Model(pathMesh, null)});
+        try {
+            Vector3 leftResult = firstLeft.getIntersection(secondLeft);
+            Vector3 rightResult = firstRight.getIntersection(secondRight);
+            return new Vector3[]{leftResult, rightResult};
+        } catch (Throwable t) {
+            System.out.println(t);
+            dir1.isParrallelTo(dir2);
+            throw t;
         }
     }
 }

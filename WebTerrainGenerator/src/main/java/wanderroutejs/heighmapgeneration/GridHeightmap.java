@@ -26,13 +26,14 @@ import darwin.geometrie.unpacked.Mesh;
 import darwin.util.math.base.tupel.Tupel2;
 import darwin.util.math.base.vector.Vector2;
 
-
 /**
  *
  * @author daniel
  */
 public class GridHeightmap implements HeightmapGenerator
 {
+    private static final Element POSITION = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
+    private static final Element AMBIENT = new Element(new GenericVector(DataType.FLOAT, 2), "TexCoord");
     private final CellFactory factory;
     private final HeightSource ao;
 
@@ -46,27 +47,34 @@ public class GridHeightmap implements HeightmapGenerator
     @Override
     public Mesh generateVertexData(final HeightSource image)
     {
-        final Element position = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
-        final Element ambient = new Element(new GenericVector(DataType.FLOAT, 3), "Normal");
-        VertexBuffer buffer = new VertexBuffer(new DataLayout(position, ambient), factory.getVertexCount());
+        VertexBuffer buffer = new VertexBuffer(new DataLayout(getElements()), factory.getVertexCount());
 
         factory.fillVBufferPerVertex(buffer, new PerVertexFiller()
         {
             @Override
             public void fill(Vertex vertex, Tupel2 pos)
             {
-                float x = pos.getX();
-                float y = pos.getY();
-
-                float h = image.getHeightValue(x, y);
-                vertex.setAttribute(position, x-0.5, h, y-0.5);
-
-                float a = ao.getHeightValue(x, y);
-                vertex.setAttribute(ambient, a, a, a);
+                fillVertex(pos.getX(), pos.getY(), vertex, image);
             }
         });
 
         Cell c = factory.getCells()[0];
         return new Mesh(c.getTriangles(), buffer, GL.GL_TRIANGLES);
+    }
+
+    protected void fillVertex(float x, float y, Vertex vertex,
+                              HeightSource source)
+    {
+        //x,y reversed to flip triangle order(front back face)
+        float h = source.getHeightValue(y, x);
+        vertex.setAttribute(POSITION, y - 0.5, h, x - 0.5);
+
+        float a = ao.getHeightValue(y, x);
+        vertex.setAttribute(AMBIENT, a, a);
+    }
+
+    protected Element[] getElements()
+    {
+        return new Element[]{POSITION, AMBIENT};
     }
 }
