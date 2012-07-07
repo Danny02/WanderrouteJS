@@ -10,7 +10,7 @@
 
     /**
      * Die Hauptklasse, die für das initialisieren und den Ablauf der
-    * render-Schleife zuständig ist.
+     * render-Schleife zuständig ist.
      * @class
      *
      * @constructor Erstellt eine Instanz der Haupklasse, initialisiert alle
