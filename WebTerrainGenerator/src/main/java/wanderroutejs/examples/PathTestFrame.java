@@ -16,11 +16,12 @@
  */
 package wanderroutejs.examples;
 
+import wanderroutejs.MightyGenerat0r;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import javax.swing.*;
-import wanderroutejs.PathTriangulator;
+import wanderroutejs.generators.PathTriangulator;
 import wanderroutejs.generators.TrackGenerator;
 
 import darwin.util.math.base.vector.*;
@@ -69,7 +70,7 @@ public class PathTestFrame extends JFrame
 
     public static void main(String[] args)
     {
-        InputStream in = GenerationTest.class.getResourceAsStream("/examples/untreusee-1206956.gpx");
+        InputStream in = MightyGenerat0r.class.getResourceAsStream("/examples/untreusee-1206956.gpx");
         TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
         Rectangle boundingBox = trackGenerator.getTripBoundingBox();
         Path<Vector3> path = trackGenerator.getTripAsPath(4500,

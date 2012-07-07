@@ -1,10 +1,12 @@
 package wanderroutejs;
 
+import wanderroutejs.generators.TriangleStripGenerator;
+import wanderroutejs.generators.HeightmapGenerator;
+import wanderroutejs.generators.TrianglesGenerator;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import org.apache.commons.cli.*;
 import wanderroutejs.datasources.*;
-import wanderroutejs.heighmapgeneration.*;
 import wanderroutejs.imageprocessing.ImageUtil2;
 import wanderroutejs.io.PlainJSONModelWriter;
 
