@@ -1,4 +1,4 @@
-package wanderroutejs.heighmapgeneration;
+package wanderroutejs.generators;
 
 import javax.media.opengl.GL;
 import wanderroutejs.datasources.HeightSource;
