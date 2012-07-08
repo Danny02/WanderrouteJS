@@ -94,7 +94,7 @@
             doc.body.appendChild(this.container);
 
             scene = this.scene = new THREE.Scene();
-            //scene.add(new THREE.AxisHelper());
+            scene.add(new THREE.AxisHelper());
 
             this.initCamera();
 
@@ -142,7 +142,7 @@
                                                                    1,
                                                                    2000);
             camera.position.x = 0;
-            camera.position.y = 0;
+            camera.position.y = 1;
             camera.position.z = 500;
             this.scene.add(camera);
         },
@@ -514,14 +514,10 @@
 
             loader.convertUpAxis = true;
             loader.load('resources/models/' + data.type + '.dae', function (collada) {
-                //var hlMaterial = new THREE.MeshPhongMaterial({color: 0x750004});
-
                 THREE.SceneUtils.traverseHierarchy(collada.scene, function (object) {
                     object.scale.set(0.01, 0.01, 0.01);
-                    object.position.set(data.position.x * 1, data.position.y * 1, data.position.z * 1 + 0.05);
-                    /*if (object.material) {
-                        object.material = new THREE.MeshBasicMaterial({ wireframe: true });
-                    }*/
+                    object.position.set(data.position.x * 1, data.position.y * 1 + 0.05, data.position.z * 1);
+
                     if ((material = object.material)) {
                         object.material = new THREE.MeshBasicMaterial({
                             color : 0xFFFFFF,
@@ -585,6 +581,7 @@
             THREE.AnimationHandler.update(delta);
             this.controls.update(delta);
 
+
             this.render();
             global.requestAnimationFrame(this.animate);
         },
@@ -642,20 +639,19 @@
          */
         createPath : function (vertices) {
             var path = new THREE.Geometry(),
-                waypoints = [],
-                vert, i, len = vertices.length, track,
-                options = {
-                    minFilter: THREE.LinearFilter,
-                    stencilBuffer: false
-                },
-                light;
+                vert, 
+                i, 
+                len = vertices.length, 
+                track,
+                light,
+                waypoints = []; 
 
-            for (i = 0; i < len; i += 1) {
+            for (i = 0; i < len; i += 40) {
                 vert = vertices[i];
-                waypoints.push(vert);
+                waypoints.push([vert[0], vert[1], vert[2]]);
                 path.vertices.push(
-                    new THREE.Vector3(vert[0] - parseInt(vert[0], 10),
-                        vert[1] - parseInt(vert[1], 10),
+                    new THREE.Vector3(vert[0],
+                        vert[1] * (1 / 105),
                         vert[2])
                 );
             }
@@ -666,14 +662,14 @@
 
             track = new THREE.Line(path, new THREE.LineBasicMaterial({
                 color : 0xff0000,
-                linewidth: 5,
+                linewidth: 2,
                 linecap : 'round',
                 linejoin : 'round',
                 vertexColors : false,
                 fog : false
             }), THREE.LineStrip);
 
-            track.position.set(-0.5, -0.5, 0.005);
+            track.position.set(-0.5, 0.000, -0.5);
             //track.rotation.x = -0.8;
             this.trackScene = new THREE.Scene();
 
@@ -708,6 +704,20 @@
             this.origCameraPosition = this.camera.position;
 
             var controls = new THREE.PathControls(this.camera);
+/*
+            controls.waypoints = this.waypoints;
+            controls.duration = 120;
+            controls.useConstantSpeed = true;
+            //controls.createDebugPath = true;
+            //controls.createDebugDummy = true;
+            controls.lookSpeed = 0.06;
+            controls.lookVertical = true;
+            controls.lookHorizontal = false;
+            controls.verticalAngleMap = { srcRange: [ -2 * Math.PI, 2 * Math.PI ], dstRange: [ -5, 0 ] };
+            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.lon = 180;
+            controls.lat = -45;
+*/
 
             controls.waypoints = this.waypoints;
             controls.duration = 28;
@@ -715,13 +725,11 @@
             //controls.createDebugPath = true;
             //controls.createDebugDummy = true;
             controls.lookSpeed = 0.06;
-            controls.lookVertical = false;
-            controls.lookHorizontal = false;
-            controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
-            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
+            controls.lookVertical = true;
+            controls.lookHorizontal = true;
+            controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -2.1, -4.8 ] };
+            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [0.3, Math.PI - 0.3 ] };
             controls.lon = 180;
-            controls.lat = 0;
-
             this.controls = controls;
             this.controls.init();
 
@@ -736,11 +744,43 @@
         stopFlying : function () {
             this.flying = false;
             this.controls.animation.stop();
-            this.camera.position = this.origCameraPosition;
+
+            delete this.controls.animation;
+            delete this.controls;
+
             this.scene.remove(this.controls.animationParent);
             this.controls = this.origControls;
+            this.camera.position = this.origCameraPosition;
             this.controls.init();
-        }
+        },
+/*
+        onFlyPath : function(){
+            this.flyPath(0);
+        },
+
+        flyPath : function(i){
+            var that = this;
+
+            console.log("Fly Path!");
+            i || (i = 0);
+
+            //remember old camera position
+
+
+            console.log(this.track);
+
+            var vertices = this.track.children[0].geometry.vertices;
+            
+            if(vertices.length > i){
+                this.camera.position.z = vertices[i].z + 3;
+                this.camera.position.y = vertices[i].y;
+                this.camera.position.x = vertices[i].x;
+                console.log(this.camera.position);
+                window.setTimeout(function (){
+                    that.flyPath(++i);
+                }, 500);
+            }
+        }*/
     };
 
     WanderUte.App.start = function () {
