@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.63.0 r46461:46487M</authoring_tool>
     </contributor>
-    <created>2012-06-25T16:51:47</created>
-    <modified>2012-06-25T16:51:47</modified>
+    <created>2012-07-08T11:36:30</created>
+    <modified>2012-07-08T11:36:30</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -147,7 +147,7 @@
     <geometry id="Cube_001-mesh" name="Cube.001">
       <mesh>
         <source id="Cube_001-mesh-positions">
-          <float_array id="Cube_001-mesh-positions-array" count="27">-1 -1 -1 -1 1 -1 1 1 -1 1 -1 -1 -1 -1 1 -1 1 1 1 1 1 1 -1 1 0 0 -2.1</float_array>
+          <float_array id="Cube_001-mesh-positions-array" count="27">-1 -0.766666 0.7666671 -1 -0.7666674 -1.233333 1 -0.7666674 -1.233333 1 -0.766666 0.7666671 -1 1.233334 0.7666659 -1 1.233333 -1.233334 1 1.233333 -1.233334 1 1.233334 0.7666659 0 -1.866667 -0.2333321</float_array>
           <technique_common>
             <accessor source="#Cube_001-mesh-positions-array" count="9" stride="3">
               <param name="X" type="float"/>
@@ -157,7 +157,7 @@
           </technique_common>
         </source>
         <source id="Cube_001-mesh-normals">
-          <float_array id="Cube_001-mesh-normals-array" count="27">-0.7399401 0 -0.6726728 -1 0 0 0 0.7399401 -0.6726728 0 -1 0 0.7399401 0 -0.6726728 0 0 1 0 -0.7399401 -0.6726728 0 1 0 1 0 0</float_array>
+          <float_array id="Cube_001-mesh-normals-array" count="27">-0.7399401 -0.6726728 4.61086e-7 -1 0 0 0 -0.6726734 -0.7399396 0 5.96046e-7 1 0.7399401 -0.6726728 4.61086e-7 0 1 -6.55651e-7 0 -0.6726723 0.7399405 0 -5.96046e-7 -1 1 0 0</float_array>
           <technique_common>
             <accessor source="#Cube_001-mesh-normals-array" count="9" stride="3">
               <param name="X" type="float"/>

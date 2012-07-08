@@ -1,0 +1,99 @@
+body {
+    background-color: #000;
+    margin: 0px;
+    overflow: hidden;
+    font-family: Arial;
+}
+
+
+#window-sign {
+    display: none;
+    width: 400px;
+    height: 300px;
+    padding-bottom: 40px;
+}
+
+#window-sign .header {
+    background-color: #dedede;
+}
+
+#window-sign .header h2 {
+    margin: 0;
+    padding: 3px 6px;
+}
+
+#window-sign .footer {
+    border-top: 1px solid #cdcdcd;
+    background-color: 40px solid #fbfbfb;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    text-align: right;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+button {
+    width: 50px;
+    height: 20px;
+
+}
+
+form {
+    padding: 10px;
+}
+
+.row {
+    padding: 4px 0;
+}
+
+.row label {
+    display: inline-block;
+    width: 100px;
+}
+
+form input.small {
+    width: 70px;
+}
+
+.panel {
+    border-radius: 1px;
+    position: absolute;
+    background-color: #efefef;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    top: 20px;
+    right: 20px;
+    z-index: 2;
+    box-sizing: border-box;
+    padding:4px;
+}
+
+.controls label {
+    width: 200px;
+}
+
+.profile {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 200px;
+    height: 120px;
+    bottom: 20px;
+    top: auto;
+    right: 20px;
+    display: none;
+
+    -webkit-transition: all 0.3s ease-in-out;
+}
+
+.profile:hover {
+    background-color: rgba(0, 0, 0, 0.4);
+    width: 1000px;
+    height: 600px;
+}
+
+.show {
+    display: block!important;
+}
