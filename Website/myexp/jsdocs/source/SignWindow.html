@@ -75,9 +75,9 @@
 
 
     WanderUte.SignWindow.prototype = {
-<span id='WanderUte-SignWindow-method-show'>        /**
-</span>         * Zeigt die Fensterinstanz an.
-         * @param {Object} data Datenobjekt, das die Informationen eines
+        /**
+<span id='WanderUte-SignWindow-method-show'>         * Zeigt die Fensterinstanz an.
+</span>         * @param {Object} data Datenobjekt, das die Informationen eines
          * Markers beinhaltet.
          * @param {Object} data.position Position des Markers
          * @param {Number} data.position.x X-Achsen Abschnitt der
@@ -107,16 +107,16 @@
             this.element.classList.add(&quot;show&quot;);
         },
 
-<span id='WanderUte-SignWindow-method-close'>        /**
-</span>         * Schließt das Fenster.
-         */
+        /**
+<span id='WanderUte-SignWindow-method-close'>         * Schließt das Fenster.
+</span>         */
         close : function () {
             this.element.classList.remove(&quot;show&quot;);
         },
 
-<span id='WanderUte-SignWindow-method-onOk'>        /**
-</span>         * @private
-         * Behandelt Klicks auf den OK-Button. Ruft den OK-Callback auf und
+        /**
+<span id='WanderUte-SignWindow-method-onOk'>         * @private
+</span>         * Behandelt Klicks auf den OK-Button. Ruft den OK-Callback auf und
          * schließt das Fenster.
          */
         onOk : function () {
@@ -134,9 +134,9 @@
             this.close();
         },
 
-<span id='WanderUte-SignWindow-method-onCancel'>        /**
-</span>         * @private
-         * Behandelt Klicks auf den Cancel-Button. Schließt das Fenster.
+        /**
+<span id='WanderUte-SignWindow-method-onCancel'>         * @private
+</span>         * Behandelt Klicks auf den Cancel-Button. Schließt das Fenster.
          */
         onCancel : function () {
             this.close();

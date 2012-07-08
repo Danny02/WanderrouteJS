@@ -27,7 +27,7 @@
     
 <span id='WanderUte-App-method-constructor'><span id='WanderUte-App'>    /**
 </span></span>     * Die Hauptklasse, die für das initialisieren und den Ablauf der
-    * render-Schleife zuständig ist.
+     * render-Schleife zuständig ist.
      * @class
      *
      * @constructor Erstellt eine Instanz der Haupklasse, initialisiert alle
@@ -97,9 +97,9 @@
     };
 
     WanderUte.App.prototype = {
-<span id='WanderUte-App-method-init'>        /**
-</span>         * Initialisiert alles was nötig ist um die Karte zu zeichnen. 
-         * @private
+        /**
+<span id='WanderUte-App-method-init'>         * Initialisiert alles was nötig ist um die Karte zu zeichnen. 
+</span>         * @private
          */ 
         init : function () {
             var scene, projector, that = this;
@@ -128,9 +128,9 @@
             $.get(&quot;includes/signs.json&quot;, this.initSigns);
         },
 
-<span id='WanderUte-App-method-initSigns'>        /**
-</span>         * Initialisiert die Marker
-         * @private
+        /**
+<span id='WanderUte-App-method-initSigns'>         * Initialisiert die Marker
+</span>         * @private
          * @param {Array} signs Ein Array von Markern.
          */ 
         initSigns : function (signs) {
@@ -148,9 +148,9 @@
             }
         },
 
-<span id='WanderUte-App-method-initCamera'>        /**
-</span>         * Initialisiert die Camera
-         * @private
+        /**
+<span id='WanderUte-App-method-initCamera'>         * Initialisiert die Camera
+</span>         * @private
          */ 
         initCamera : function () {
             //camera
@@ -164,9 +164,9 @@
             this.scene.add(camera);
         },
 
-<span id='WanderUte-App-method-initControls'>        /**
-</span>         * Initialisiert die Steuerelemente.
-         * @private
+        /**
+<span id='WanderUte-App-method-initControls'>         * Initialisiert die Steuerelemente.
+</span>         * @private
          * @param {Array} [keys=[65,83,68]] Die drei Tasten, mit denen
          * THREE.TrackballControls gesteuert werden können.
          */ 
@@ -187,9 +187,9 @@
             controls.keys = keys;
         },
 
-<span id='WanderUte-App-method-initRenderer'>        /**
-</span>         * Initialisiert den Three.WebGLRenderer.
-         * @private
+        /**
+<span id='WanderUte-App-method-initRenderer'>         * Initialisiert den Three.WebGLRenderer.
+</span>         * @private
          */
         initRenderer : function () {
             // RENDERER
@@ -213,9 +213,9 @@
             this.container.appendChild(renderer.domElement);
         },
 
-<span id='WanderUte-App-method-initEventListeners'>        /**
-</span>         * Initialisiert die event listener.
-         * @private
+        /**
+<span id='WanderUte-App-method-initEventListeners'>         * Initialisiert die event listener.
+</span>         * @private
          */ 
         initEventListeners : function () {
             //doc.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -226,25 +226,25 @@
             this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
         },
 
-<span id='WanderUte-App-method-onShowProfileChange'>        /**
-</span>         * Behandlt Änderungen der &quot;Profil anzeigen&quot; Checkbox.
-         * @private 
+        /**
+<span id='WanderUte-App-method-onShowProfileChange'>         * Behandlt Änderungen der &quot;Profil anzeigen&quot; Checkbox.
+</span>         * @private 
          */ 
         onShowProfileChange : function (e) {
             this.profilePanel.toggle(e.target.checked);
         },
 
-<span id='WanderUte-App-method-onShowMarkerChange'>        /**
-</span>         * Behandlt Änderungen der &quot;Marker anzeigen&quot; Checkbox.
-         * @private 
+        /**
+<span id='WanderUte-App-method-onShowMarkerChange'>         * Behandlt Änderungen der &quot;Marker anzeigen&quot; Checkbox.
+</span>         * @private 
          */ 
         onShowMarkerChange : function () {
             this.showMarker = this.chkShowMarker.checked;
         },
 
-<span id='WanderUte-App-method-initTerrain'>        /**
-</span>         * Initialisiert das Kartenterrain, indem die Terraindaten mittels
-         * THREE.CTMLoader geladen werden. Sobald der Ladevorgang abgeschlossen
+        /**
+<span id='WanderUte-App-method-initTerrain'>         * Initialisiert das Kartenterrain, indem die Terraindaten mittels
+</span>         * THREE.CTMLoader geladen werden. Sobald der Ladevorgang abgeschlossen
          * ist, wird Main#onMeshLoaded aufgerufen.
          * @private 
          */ 
@@ -269,9 +269,9 @@
         },
 
 
-<span id='WanderUte-App-method-initTrackProjection'>        /**
-</span>         * Initialisiert das Projektionsprisma des Pfades mittels
-         * THREE.CTMLoader. Sobald der Pfad geladen ist, wird
+        /**
+<span id='WanderUte-App-method-initTrackProjection'>         * Initialisiert das Projektionsprisma des Pfades mittels
+</span>         * THREE.CTMLoader. Sobald der Pfad geladen ist, wird
          * Main#onTrackMashLoaded aufgerufen.
          * Zudem werden die Wegpunkte des Pfades als JSON geladen, und sobald
          * der Ladevorgang abgeschlossen ist, die Main#onTrackJSONLoaded
@@ -304,18 +304,18 @@
             xhr.send(null);
         },
 
-<span id='WanderUte-App-method-S-'>        /**
-</span>         * Hilfsfunktion um ein Element anhand dessen id-Attributs zu
-         * ermitteln.
+        /**
+<span id='WanderUte-App-method-S-'>         * Hilfsfunktion um ein Element anhand dessen id-Attributs zu
+</span>         * ermitteln.
          * @private
          */
         $ : function (id) {
             return doc.getElementById(id);
         },
 
-<span id='WanderUte-App-method-onMeshLoaded'>        /**
-</span>         * Callback der aufgerufen wird, sobald das Mesh der Karte fertig
-         * geladen wurde.
+        /**
+<span id='WanderUte-App-method-onMeshLoaded'>         * Callback der aufgerufen wird, sobald das Mesh der Karte fertig
+</span>         * geladen wurde.
          * Initialisiert ein Three.Mesh objekt mit dieser Geometrie und fügt
          * dieses der Haupszene hinzu.
          * @private 
@@ -338,9 +338,9 @@
             this.updateLoadCounter();
         },
 
-<span id='WanderUte-App-method-onTrackMashLoaded'>        /**
-</span>         * Callback, der ausgeführt wird, sobald das Mesh des Pfades
-         * vollständig geladen ist.
+        /**
+<span id='WanderUte-App-method-onTrackMashLoaded'>         * Callback, der ausgeführt wird, sobald das Mesh des Pfades
+</span>         * vollständig geladen ist.
          * Bereitet dann das Trackprisma für die Projektion auf die Karte vor
          * und platziert es an der richtigen Stelle im Raum und fügt es der 
          * Trackprojektions-Szene hinzu.
@@ -376,9 +376,9 @@
             this.updateLoadCounter();
         },
 
-<span id='WanderUte-App-method-onTrackJSONLoaded'>        /**
-</span>         * Callback, der aufgerufen wird, sobald die Wegpunkte der Strecke
-         * vollständig geladen wurden.
+        /**
+<span id='WanderUte-App-method-onTrackJSONLoaded'>         * Callback, der aufgerufen wird, sobald die Wegpunkte der Strecke
+</span>         * vollständig geladen wurden.
          * Dannach werden zunächst #createPath und dann
          * ProfilePanel#calculateTrackProfile aufgerufen.
          * @private
@@ -392,9 +392,9 @@
             this.updateLoadCounter();
         },
 
-<span id='WanderUte-App-method-updateLoadCounter'>        /**
-</span>         * Updatet den Counter, der zählt, wie viele Asynchrone loader bereits mit dem Laden fertig sind.
-         * Sobald alle Loader fertig sind, wird die Uhr und die Animation gestartet.
+        /**
+<span id='WanderUte-App-method-updateLoadCounter'>         * Updatet den Counter, der zählt, wie viele Asynchrone loader bereits mit dem Laden fertig sind.
+</span>         * Sobald alle Loader fertig sind, wird die Uhr und die Animation gestartet.
          * @private
          */
         updateLoadCounter : function () {
@@ -407,9 +407,9 @@
             }
         },
 
-<span id='WanderUte-App-method-onDocumentMouseDown'>        /**
-</span>         * Behandelt MouseDown Events. 
-         * @private
+        /**
+<span id='WanderUte-App-method-onDocumentMouseDown'>         * Behandelt MouseDown Events. 
+</span>         * @private
          * @param {MouseEvent} e MouseEvent. 
          */
         onDocumentMouseDown : function (e) {
@@ -425,9 +425,9 @@
             }
         },
 
-<span id='WanderUte-App-method-mousePositionToPointOnMap'>        /**
-</span>         * Projeziert den Punkte (x, y) des Bildauschnitts in das
-         * Weltkoordinatensystem der Karte und ermittlet den Schnittpunkt mit
+        /**
+<span id='WanderUte-App-method-mousePositionToPointOnMap'>         * Projeziert den Punkte (x, y) des Bildauschnitts in das
+</span>         * Weltkoordinatensystem der Karte und ermittlet den Schnittpunkt mit
          * der Karte.
          * @private
          * @param {Number} x Mausposition auf der x-Achse
@@ -454,9 +454,9 @@
             return intersects;
         },
 
-<span id='WanderUte-App-method-showSignWindow'>        /**
-</span>         * Öffnet das Fenster zum Erstellen eines neuen Markers.
-         * @param {Object} position Position des Markers
+        /**
+<span id='WanderUte-App-method-showSignWindow'>         * Öffnet das Fenster zum Erstellen eines neuen Markers.
+</span>         * @param {Object} position Position des Markers
          * @param {Number} position.x X-Achsen Abschnitt der
          * Markerposition
          * @param {Number} position.y Y-Achsen Abschnitt der
@@ -477,9 +477,9 @@
             }, this.onCreateSign);
         },
 
-<span id='WanderUte-App-method-onCreateSign'>        /**
-</span>         * Erstellt ein neues Zeichen und speichert es auf dem Server.
-         * @private
+        /**
+<span id='WanderUte-App-method-onCreateSign'>         * Erstellt ein neues Zeichen und speichert es auf dem Server.
+</span>         * @private
          * @param {Object} data Datenobjekt, das die Informationen eines
          * Markers beinhaltet.
          * @param {Object} data.position Position des Markers
@@ -508,9 +508,9 @@
 
 
 
-<span id='WanderUte-App-method-displaySign'>        /**
-</span>         * Läd den Marker per THREE.ColladaLoader und fügt ihn dann in
-         * Main#trackScene ein.
+        /**
+<span id='WanderUte-App-method-displaySign'>         * Läd den Marker per THREE.ColladaLoader und fügt ihn dann in
+</span>         * Main#trackScene ein.
          * @param {Object} data Datenobjekt, das die Informationen eines
          * Markers beinhaltet.
          * @param {Object} data.position Position des Markers
@@ -551,9 +551,9 @@
             });
         },
 
-<span id='WanderUte-App-method-onWindowResize'>        /**
-</span>         * Behandelt window resize Events, indem die Cameraposition neu
-         * berechnet.
+        /**
+<span id='WanderUte-App-method-onWindowResize'>         * Behandelt window resize Events, indem die Cameraposition neu
+</span>         * berechnet.
          * @private
          * @param {Event} event Resize-Event
          */
@@ -567,9 +567,9 @@
             this.camera.updateProjectionMatrix();
         },
 
-<span id='WanderUte-App-method-animateStart'>        /**
-</span>         * Animations-Schleife, die zu Beginn des Renderings aufgerufen wird und
-         * für das Hineinfliegen in die Karte zuständig ist. Nachdem
+        /**
+<span id='WanderUte-App-method-animateStart'>         * Animations-Schleife, die zu Beginn des Renderings aufgerufen wird und
+</span>         * für das Hineinfliegen in die Karte zuständig ist. Nachdem
          * Main#camera.position.z &lt; 2 ist, wird im Folgenden Main#animate
          * aufgerufen.
          * @private
@@ -592,9 +592,9 @@
             }
         },
 
-<span id='WanderUte-App-method-animate'>        /**
-</span>         * Hauptanimations-Scheife. 
-         * @private
+        /**
+<span id='WanderUte-App-method-animate'>         * Hauptanimations-Scheife. 
+</span>         * @private
          */
         animate : function () {
             var delta = this.clock.getDelta();
@@ -606,9 +606,9 @@
             global.requestAnimationFrame(this.animate);
         },
 
-<span id='WanderUte-App-method-render'>        /**
-</span>         * Zeichnet die Karte und die Projektion darauf. 
-         * Sofern Main#showMarker auf true gesetzt ist, wird auch der Track als
+        /**
+<span id='WanderUte-App-method-render'>         * Zeichnet die Karte und die Projektion darauf. 
+</span>         * Sofern Main#showMarker auf true gesetzt ist, wird auch der Track als
          * Linie, sowie die Marker gezeichnet.
          * @private
          */
@@ -651,9 +651,9 @@
             }
         },
 
-<span id='WanderUte-App-method-createPath'>        /**
-</span>         * Erstellt den Pfad aus einem Array von Wegpunkten.
-         * @private
+        /**
+<span id='WanderUte-App-method-createPath'>         * Erstellt den Pfad aus einem Array von Wegpunkten.
+</span>         * @private
          * @param {Array} vertices Liste der Wegpunkte in der Form [x, y, z],
          * die den Pfad beschreiben.
          */
@@ -699,9 +699,9 @@
 
 
 
-<span id='WanderUte-App-method-onToggleFlyAlongPath'>        /**
-</span>         * Sofern Main#flying true ist, man also über den Pfad fliegt,
-         * wird Main#stopFlying aufgerufen, ansonsten Main#startFlying.
+        /**
+<span id='WanderUte-App-method-onToggleFlyAlongPath'>         * Sofern Main#flying true ist, man also über den Pfad fliegt,
+</span>         * wird Main#stopFlying aufgerufen, ansonsten Main#startFlying.
          * @private
          */
         onToggleFlyAlongPath : function (e) {
@@ -714,9 +714,9 @@
         },
 
 
-<span id='WanderUte-App-method-startFlying'>        /**
-</span>         * Startet den Flug entlang des Pfads.
-         */
+        /**
+<span id='WanderUte-App-method-startFlying'>         * Startet den Flug entlang des Pfads.
+</span>         */
         startFlying : function () {
             this.fying = true;
 
@@ -747,9 +747,9 @@
             controls.animation.play(true, 0);
         },
 
-<span id='WanderUte-App-method-stopFlying'>        /**
-</span>         * Stopt den Flug entlang des Pfads.
-         */
+        /**
+<span id='WanderUte-App-method-stopFlying'>         * Stopt den Flug entlang des Pfads.
+</span>         */
         stopFlying : function () {
             this.flying = false;
             this.controls.animation.stop();
