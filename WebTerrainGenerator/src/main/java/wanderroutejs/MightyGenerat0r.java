@@ -49,29 +49,30 @@ public class MightyGenerat0r
 //TODO problematisch wenn generate von mehreren Threads genutzt wird. Wahrscheinliches verhalten ist,
 // dass alle Afruhe der Methode erst beenden wenn auch der letzte Aufruf fertig ist(Wegen dem Phaser,
 // jeder aufruf bräuchte nen eigenen Phaser. Versteh die klasse kaum weswegen es auch andere möglichkeiten geben könnte)
-    public synchronized void generate(String gpsPathFile)
+    public synchronized void generate(String gpsPathFile) throws IOException
     {
         phaser.register();
         long time = System.currentTimeMillis();
+
+
+        File test = new File(gpsPathFile);
+        if (!test.canRead()) {
+            logger.error("Can not read File: "+test.getAbsolutePath());
+            throw new IOException("Could not read File");
+        }
+
+        InputStream in = new FileInputStream(test);
+
+        final TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
+        final Rectangle boundingBox = trackGenerator.getTripBoundingBox();
+
+        logger.info("Generating data for " + boundingBox);
 
         File outPath = getOutputPath(gpsPathFile);
 
         if (!outPath.exists()) {
             outPath.mkdirs();
         }
-
-        InputStream in = null;
-        try {
-            in = ResourcesLoader.getRessource(gpsPathFile);
-        } catch (IOException ex) {
-            logger.error("Could not find the track file!");
-            System.exit(1);
-        }
-
-        final TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
-        final Rectangle boundingBox = trackGenerator.getTripBoundingBox();
-
-        logger.info("Generating data for " + boundingBox);
 
         submitTask("terrain creation", new TerrainCreationTask(boundingBox, this, outPath,
                                                                normalScale, heightScale, tessFactor));
@@ -122,8 +123,10 @@ public class MightyGenerat0r
 
     public void shutdown()
     {
-        threadPool.shutdown();
-        threadPool = null;
+        if (threadPool != null) {
+            threadPool.shutdown();
+            threadPool = null;
+        }
     }
 
     public static void main(String[] args)
@@ -132,6 +135,7 @@ public class MightyGenerat0r
         try {
 
             test.generate("untreusee-1206956.gpx");
+        } catch (Throwable t) {
         } finally {
             test.shutdown();
         }

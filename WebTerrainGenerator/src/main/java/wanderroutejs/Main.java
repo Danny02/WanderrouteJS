@@ -10,31 +10,15 @@ public class Main
     public static final Options options = new Options();
 
     static {
-        options.addOption(withArgName("track").hasArg().
-                isRequired().
-                withDescription("The file path to the gps track(*.gpx), for which render resource should get created.").
-                withLongOpt("gps-track-path").
-                create("t"));
+        options.addOption(withArgName("track").hasArg().isRequired().withDescription("The file path to the gps track(*.gpx), for which render resource should get created.").withLongOpt("gps-track-path").create("t"));
 
-        options.addOption(withArgName("output").hasArg().
-                withDescription("The output path in which the resource should get created.").
-                withLongOpt("output-path").
-                create("o"));
+        options.addOption(withArgName("output").hasArg().withDescription("The output path in which the resource should get created.").withLongOpt("output-path").create("o"));
 
-        options.addOption(withArgName("tessfactor").hasArg().
-                withDescription("The amount of subdivitions of the terrain grid.").
-                withLongOpt("tesselation-factor").
-                create("tf"));
+        options.addOption(withArgName("tessfactor").hasArg().withDescription("The amount of subdivitions of the terrain grid.").withLongOpt("tesselation-factor").create("tf"));
 
-        options.addOption(withArgName("heihgtscale").hasArg().
-                withDescription("The amount the terrain height get scaled.").
-                withLongOpt("terrain-height-scale").
-                create("hs"));
+        options.addOption(withArgName("heihgtscale").hasArg().withDescription("The amount the terrain height get scaled.").withLongOpt("terrain-height-scale").create("hs"));
 
-        options.addOption(withArgName("normalscale").hasArg().
-                withDescription("The 'strongness' factor of the terrain normal map(value < 1. means stronger).").
-                withLongOpt("terrain-normal-power").
-                create("ns"));
+        options.addOption(withArgName("normalscale").hasArg().withDescription("The 'strongness' factor of the terrain normal map(value < 1. means stronger).").withLongOpt("terrain-normal-power").create("ns"));
 
         options.addOption("h", "help", false, null);
     }
@@ -79,12 +63,21 @@ public class Main
                 normalScale = MightyGenerat0r.DEFAULT_NORMAL_SCALE;
             }
 
-            if(line.hasOption('h'))
+            if (line.hasOption('h')) {
                 printUsage();
+            }
 
             File out = new File(outputDir);
             MightyGenerat0r generator = new MightyGenerat0r(heightScale, normalScale, tessfactor, out);
-            generator.generate(trackFile);
+            try {
+                generator.generate(trackFile);
+            } catch (Throwable t) {
+                System.out.println(t.getLocalizedMessage());
+                System.exit(1);
+                generator.shutdown();
+            } finally {
+                generator.shutdown();
+            }
         } catch (ParseException ex) {
             System.out.println(ex.getLocalizedMessage());
             printUsage();
