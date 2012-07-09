@@ -39,6 +39,8 @@
         this.itemsToLoad = 3;
         this.itemsLoaded = 0;
 
+        this.timeToWaitTillGrowAnimation = 0.5;
+
         /** @property
          * Enthält die sekundäre Szene, in die das Pfad-Prisma
          * gezeichnet wird, das dann per Stenciltest auf die Karte projeziiert
@@ -166,7 +168,7 @@
                                                                    2000);
             camera.position.x = 0;
             camera.position.y = 1;
-            camera.position.z = 500;
+            camera.position.z = 20;
             this.scene.add(camera);
         },
 
@@ -671,9 +673,9 @@
          * @private
          */
         animateStart : function () {
-            var delta = this.clock.getDelta();
+            var delta = this.clock.getDelta(),
+                posY, posZ;
 
-            this.shaderUniforms.time.value += delta;
 
             this.render();
 
@@ -683,8 +685,11 @@
             }
             else {
                 global.requestAnimationFrame(this.animateStart);
-                this.camera.position.z -= 250 * delta;
-                this.camera.position.z = this.camera.position.z < 2 ? 2 : this.camera.position.z;
+                posZ = this.camera.position.z - 10 * delta;
+                posY = this.camera.position.y - delta;
+                this.camera.position.y = posY < 1 ? 1 : posY;
+                this.camera.position.z = posZ < 2 ? 2 : posZ;
+                this.camera.lookAt(this.scene.position);
             }
         },
 
@@ -695,6 +700,10 @@
         animate : function () {
             var delta = this.clock.getDelta();
 
+            this.timeToWaitTillGrowAnimation -= delta;
+            if (this.timeToWaitTillGrowAnimation < 0) {
+                this.shaderUniforms.time.value += delta;
+            }
             THREE.AnimationHandler.update(delta);
             this.controls.update(delta);
 
