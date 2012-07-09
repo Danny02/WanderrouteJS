@@ -16,22 +16,28 @@
  */
 package wanderroutejs.threading;
 
+import org.slf4j.*;
+
 /**
  *
  * @author daniel
  */
 public class TimedRunnable implements Runnable
 {
+    private final static Logger logger = LoggerFactory.getLogger(TimedRunnable.class);
     private final String taskName;
     private final Runnable runnable;
 
     public TimedRunnable(Runnable runnable)
     {
-        this(runnable.getClass().getSimpleName(), runnable);
+        this(null, runnable);
     }
 
     public TimedRunnable(String taskName, Runnable runnable)
     {
+        if (taskName == null) {
+            taskName = runnable.getClass().getSimpleName();
+        }
         this.taskName = taskName;
         this.runnable = runnable;
     }
@@ -39,10 +45,10 @@ public class TimedRunnable implements Runnable
     @Override
     public void run()
     {
-        System.out.println("Starting task \"" + taskName + "\"...");
+        logger.info("Starting task \"" + taskName + "\"...");
         long time = System.currentTimeMillis();
         runnable.run();
         time = System.currentTimeMillis() - time;
-        System.out.println("Finished task \"" + taskName + "\" in: " + time);
+        logger.info("Finished task \"" + taskName + "\" in: " + time);
     }
 }

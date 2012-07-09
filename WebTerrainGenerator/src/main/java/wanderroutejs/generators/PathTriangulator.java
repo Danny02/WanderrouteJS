@@ -18,19 +18,13 @@
  */
 package wanderroutejs.generators;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.*;
 import java.util.*;
 import javax.media.opengl.GL;
 import wanderroutejs.datasources.HeightSource;
-import wanderroutejs.examples.ImageFrame;
-import wanderroutejs.io.PlainJSONModelWriter;
 
 import darwin.geometrie.data.GenericVector;
 import darwin.geometrie.data.*;
-import darwin.geometrie.io.*;
-import darwin.geometrie.unpacked.*;
+import darwin.geometrie.unpacked.Mesh;
 import darwin.util.math.base.Line;
 import darwin.util.math.base.vector.Vector;
 import darwin.util.math.base.vector.*;
@@ -162,12 +156,6 @@ public class PathTriangulator
             double s = (a+b+c) * 0.5;
             double area = Math.sqrt(s*(s-a)*(s-b)*(s-c));
 
-            if(Double.isNaN(area))
-            {
-            dir1 = start.clone().sub(last.getStart());
-            }
-
-            System.out.println(area);
             if (area < threshold) {
                 discardCount++;
                 if (!segments.hasNext()) {

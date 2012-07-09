@@ -6,7 +6,7 @@
     <parent>
         <groupId>wanderroutejs</groupId>
         <artifactId>WanderrouteJs</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <artifactId>OSMXMLReader</artifactId>
     <packaging>jar</packaging>

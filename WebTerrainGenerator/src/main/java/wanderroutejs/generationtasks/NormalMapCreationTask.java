@@ -16,7 +16,6 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.Callable;
 import wanderroutejs.imageprocessing.NormalGeneratorOp;
@@ -28,17 +27,19 @@ import wanderroutejs.imageprocessing.NormalGeneratorOp;
 public class NormalMapCreationTask implements Callable<BufferedImage>
 {
     private final BufferedImage height;
+    private final float normalScale;
 
-    public NormalMapCreationTask(BufferedImage height)
+    public NormalMapCreationTask(BufferedImage height, float normalScale)
     {
         this.height = height;
+        this.normalScale = normalScale;
     }
 
     @Override
     public BufferedImage call() throws Exception
     {
         BufferedImage normal = new BufferedImage(height.getWidth(), height.getHeight(), BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp(MightyGenerat0r.NORMAL_SCALE).filter(height, normal);
+        new NormalGeneratorOp(normalScale).filter(height, normal);
         return normal;
     }
 }

@@ -16,13 +16,11 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
-import wanderroutejs.generators.GridHeightmapWithNormals;
-import wanderroutejs.generators.HeightmapGenerator;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.concurrent.*;
 import wanderroutejs.datasources.*;
+import wanderroutejs.generators.*;
 
 import darwin.geometrie.io.*;
 import darwin.geometrie.unpacked.*;
@@ -33,17 +31,21 @@ import darwin.geometrie.unpacked.*;
  */
 public class MeshCreationTask implements Runnable
 {
-    private static final int TESS_FACTOR = 100;
     private final Future<BufferedImage> ambientMap;
     private final BufferedImage height;
     private final File file;
+    private final float heightScale;
+    private final int tessFactor;
 
     public MeshCreationTask(Future<BufferedImage> ambientMap,
-                            BufferedImage height, File file)
+                            BufferedImage height, File file, float heightScale,
+                            int tessFactor)
     {
         this.ambientMap = ambientMap;
         this.height = height;
         this.file = file;
+        this.heightScale = heightScale;
+        this.tessFactor = tessFactor;
     }
 
     @Override
@@ -60,9 +62,9 @@ public class MeshCreationTask implements Runnable
 
     private Model generateMesh(BufferedImage height, BufferedImage ambient)
     {
-        HeightSource ambientSource = new ImageHeightSource(ambient, TESS_FACTOR * 3, 1f / 255);
-        HeightmapGenerator generator = new GridHeightmapWithNormals(TESS_FACTOR, ambientSource, height);
-        HeightSource source = new ImageHeightSource(height, TESS_FACTOR * 3, MightyGenerat0r.HEIGHT_SCALE);
+        HeightSource ambientSource = new ImageHeightSource(ambient, tessFactor * 3, 1f / 255);
+        HeightmapGenerator generator = new GridHeightmapWithNormals(tessFactor, ambientSource, height);
+        HeightSource source = new ImageHeightSource(height, tessFactor * 3, heightScale);
         Mesh mesh = generator.generateVertexData(source);
         return new Model(mesh, null);
     }

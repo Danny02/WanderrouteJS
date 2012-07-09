@@ -16,7 +16,6 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
 import java.awt.image.*;
 import java.util.concurrent.Callable;
 import wanderroutejs.imageprocessing.*;
@@ -28,10 +27,12 @@ import wanderroutejs.imageprocessing.*;
 public class AmbientCreationTask implements Callable<BufferedImage>
 {
     private final BufferedImage height;
+    private final float normalScale;
 
-    public AmbientCreationTask(BufferedImage height)
+    public AmbientCreationTask(BufferedImage height, float normalScale)
     {
         this.height = height;
+        this.normalScale = normalScale;
     }
 
     @Override
@@ -46,7 +47,7 @@ public class AmbientCreationTask implements Callable<BufferedImage>
         gauss.filter(pingPongBuffer, low);
         gauss.filter(low, pingPongBuffer);
         BufferedImage normal2 = new BufferedImage(scale, scale, BufferedImage.TYPE_INT_RGB);
-        new NormalGeneratorOp(MightyGenerat0r.NORMAL_SCALE).filter(pingPongBuffer, normal2);
+        new NormalGeneratorOp(normalScale).filter(pingPongBuffer, normal2);
         BufferedImage ao = new AmbientOcclusionOp(64, 16, 20).filter(pingPongBuffer, normal2);
         return ao;
     }

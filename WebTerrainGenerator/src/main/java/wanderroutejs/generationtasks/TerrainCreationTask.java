@@ -16,13 +16,14 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.concurrent.Future;
-import wanderroutejs.io.SRTMFileLocator;
+import org.slf4j.*;
+import wanderroutejs.MightyGenerat0r;
 import wanderroutejs.imageprocessing.ImageUtil2;
+import wanderroutejs.io.SRTMFileLocator;
 
 /**
  *
@@ -30,13 +31,23 @@ import wanderroutejs.imageprocessing.ImageUtil2;
  */
 public class TerrainCreationTask implements Runnable
 {
+    private final static Logger logger = LoggerFactory.getLogger(TerrainCreationTask.class);
     private final Rectangle boundingBox;
     private final MightyGenerat0r outer;
+    private final File outPath;
+    private final float normalScale, heightScale;
+    private final int tessFactor;
 
-    public TerrainCreationTask(Rectangle boundingBox, final MightyGenerat0r outer)
+    public TerrainCreationTask(Rectangle boundingBox, MightyGenerat0r outer,
+                               File outPath, float normalScale,
+                               float heightScale, int tessFactor)
     {
-        this.outer = outer;
         this.boundingBox = boundingBox;
+        this.outer = outer;
+        this.outPath = outPath;
+        this.normalScale = normalScale;
+        this.heightScale = heightScale;
+        this.tessFactor = tessFactor;
     }
 
     @Override
@@ -44,9 +55,10 @@ public class TerrainCreationTask implements Runnable
     {
         try {
             long time = System.currentTimeMillis();
-            System.out.println("Download SRTM tiles");
-            Iterable<File> files = new SRTMFileLocator().loadRectangle(boundingBox).loadSRTMFiles(MightyGenerat0r.OUTPUT_PATH).getFiles();
-            System.out.println("\tFinishe downloading SRTM tiles in: " + (System.currentTimeMillis() - time));
+            logger.info("Download SRTM tiles");
+            Iterable<File> files = new SRTMFileLocator().loadRectangle(boundingBox).loadSRTMFiles(outPath).getFiles();
+            logger.info("\tFinishe downloading SRTM tiles in: " + (System.currentTimeMillis() - time));
+
             generateMaps(files);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -62,17 +74,17 @@ public class TerrainCreationTask implements Runnable
 
     private void generateMaps(File file) throws IOException
     {
-        System.out.println("Start loading heightmap texture for " + file + "...");
+        logger.info("Start loading heightmap texture for " + file + "...");
         long time = System.currentTimeMillis();
         BufferedImage height = ImageUtil2.loadImage(file.toURI().toURL());
-        System.out.println("\tFinished loading in " + (System.currentTimeMillis() - time));
+        logger.info("\tFinished loading in " + (System.currentTimeMillis() - time));
 
-        Future<BufferedImage> normalMap = outer.submitTask("normal map creation", new NormalMapCreationTask(height));
-        Future<BufferedImage> ambientMap = outer.submitTask("ambient map creation", new AmbientCreationTask(height));
+        Future<BufferedImage> normalMap = outer.submitTask("normal map creation", new NormalMapCreationTask(height, normalScale));
+        Future<BufferedImage> ambientMap = outer.submitTask("ambient map creation", new AmbientCreationTask(height, normalScale));
 
-        outer.submitTask("mesh creation", new MeshCreationTask(ambientMap, height, file));
-        outer.submitTask("normal map write", new ImageMapWriteTask(normalMap, "normalmap"));
-        outer.submitTask("ambient map write", new ImageMapWriteTask(ambientMap, "ambientocclusion"));
-        outer.submitTask("height map write", new HeightMapWriteTask(height));
+        outer.submitTask("mesh creation", new MeshCreationTask(ambientMap, height, file, heightScale, tessFactor));
+        outer.submitTask("normal map write", new ImageMapWriteTask(normalMap, "normalmap", outPath));
+        outer.submitTask("ambient map write", new ImageMapWriteTask(ambientMap, "ambientocclusion", outPath));
+        outer.submitTask("height map write", new HeightMapWriteTask(height, outPath));
     }
 }

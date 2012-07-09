@@ -16,8 +16,9 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
 import java.awt.Rectangle;
+import java.io.File;
+import wanderroutejs.MightyGenerat0r;
 import wanderroutejs.generators.TrackGenerator;
 
 import darwin.util.math.base.vector.Vector3;
@@ -32,21 +33,25 @@ public class PathCreationTask implements Runnable
     private final TrackGenerator trackGenerator;
     private final Rectangle boundingBox;
     private final MightyGenerat0r outer;
+    private final File outPath;
+    private final float heightScale;
 
     public PathCreationTask(TrackGenerator trackGenerator, Rectangle boundingBox,
-                            final MightyGenerat0r outer)
+                            MightyGenerat0r outer, File outPath,
+                            float heightScale)
     {
-        this.outer = outer;
         this.trackGenerator = trackGenerator;
         this.boundingBox = boundingBox;
+        this.outer = outer;
+        this.outPath = outPath;
+        this.heightScale = heightScale;
     }
 
     @Override
     public void run()
     {
-        Path<Vector3> path = trackGenerator.getTripAsPath(MightyGenerat0r.HEIGHT_SCALE, -boundingBox.x, -boundingBox.y);
-        outer.submitTask("path mesh creation", new PathMeshCreationTask(path));
+        Path<Vector3> path = trackGenerator.getTripAsPath(heightScale, -boundingBox.x, -boundingBox.y);
+        outer.submitTask("path mesh creation", new PathMeshCreationTask(path, outPath));
         outer.submitTask("path prisma creation", new PathPrismaCreationTask(path));
     }
-
 }
