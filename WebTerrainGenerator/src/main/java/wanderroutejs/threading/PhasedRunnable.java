@@ -36,8 +36,10 @@ public class PhasedRunnable implements Runnable
     @Override
     public void run()
     {
-        runnable.run();
-        phaser.arrive();
+        try {
+            runnable.run();
+        } finally {
+            phaser.arrive();
+        }
     }
-
 }
