@@ -58,6 +58,13 @@ form input.small {
     width: 70px;
 }
 
+form output{
+    width: 30px;
+    overflow:hidden;
+    font-size: 0.8em;
+    display: inline-block;
+}
+
 .panel {
     border-radius: 1px;
     position: absolute;

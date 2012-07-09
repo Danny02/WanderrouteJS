@@ -76,11 +76,14 @@
         this.onMountainColorChange = this.onMountainColorChange.bind(this);
         this.onValleyColorChange = this.onValleyColorChange.bind(this);
 
+        this.onTerrainBorderChange = this.onTerrainBorderChange.bind(this);
+
 
         this.chkShowMarker = doc.querySelector("[name='show-marker']");
         this.chkShowProfile = doc.querySelector("[name='show-profile']");
         this.chkFlyAlongPath = doc.querySelector("[name='fly-along-path']");
 
+        this.rngTerrainBorder = doc.querySelector("[name='terrain-border']");
         this.rngDetailScale = doc.querySelector("[name='detail-scale']");
         this.rngAmbientScale = doc.querySelector("[name='ambient-scale']");
         this.rngAmbientShift = doc.querySelector("[name='ambient-shift']");
@@ -231,6 +234,7 @@
             this.rngDetailScale.addEventListener('change', this.onDetailScaleChange, false);
             this.rngAmbientScale.addEventListener('change', this.onAmbientScaleChange, false);
             this.rngAmbientShift.addEventListener('change', this.onAmbientShiftChange, false);
+            this.rngTerrainBorder.addEventListener('change', this.onTerrainBorderChange, false);
 
             this.colDirLight1.addEventListener('change', this.onDirLight1Change, false);
             this.colDirLight2.addEventListener('change', this.onDirLight2Change, false);
@@ -250,10 +254,13 @@
          * Behandlt Änderungen der "Marker anzeigen" Checkbox.
          * @private
          */
-        onShowMarkerChange : function () {
+        onShowMarkerChange : function (e) {
             this.showMarker = this.chkShowMarker.checked;
         },
 
+        onTerrainBorderChange  : function (e) {
+            this.shaderUniforms.terrainBorder.value = this.rngTerrainBorder.value;
+        },
 
         onDetailScaleChange  : function (e) {
             this.shaderUniforms.DETAIL_SCALE.value = Math.sqrt(this.rngDetailScale.value);
@@ -339,9 +346,14 @@
                 AMBIENT_SHIFT : {
                     type : "f",
                     value : 0.4
+                },
+                terrainBorder : {
+                    type : "f",
+                    value : 0.2
                 }
             };
 
+            this.onTerrainBorderChange();
             this.onDetailScaleChange();
             this.onAmbientScaleChange();
             this.onAmbientShiftChange();
