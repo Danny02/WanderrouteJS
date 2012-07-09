@@ -95,6 +95,6 @@ public class Main
     private static void printUsage()
     {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("", options);
+        formatter.printHelp("--gps-track-path [-o path -tf factor -hs scale -ns scale]", options);
     }
 }

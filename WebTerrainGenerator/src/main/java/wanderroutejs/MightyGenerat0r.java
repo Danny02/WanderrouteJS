@@ -4,10 +4,13 @@ import java.awt.Rectangle;
 import java.io.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
+import java.util.logging.Level;
 import org.slf4j.*;
 import wanderroutejs.generationtasks.*;
 import wanderroutejs.generators.TrackGenerator;
 import wanderroutejs.threading.*;
+
+import darwin.geometrie.io.ResourcesLoader;
 
 /**
  * Hello world!
@@ -57,7 +60,13 @@ public class MightyGenerat0r
             outPath.mkdirs();
         }
 
-        InputStream in = MightyGenerat0r.class.getResourceAsStream(gpsPathFile);
+        InputStream in = null;
+        try {
+            in = ResourcesLoader.getRessource(gpsPathFile);
+        } catch (IOException ex) {
+            logger.error("Could not find the track file!");
+            System.exit(1);
+        }
 
         final TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
         final Rectangle boundingBox = trackGenerator.getTripBoundingBox();
@@ -98,12 +107,16 @@ public class MightyGenerat0r
         return threadPool;
     }
 
-    private File getOutputPath(String EXAMPLE_PATH)
+    private File getOutputPath(String gpsTrackPath)
     {
         File outPath;
-        String a = EXAMPLE_PATH.substring(EXAMPLE_PATH.lastIndexOf('/'));
+        int pos = gpsTrackPath.lastIndexOf('/');
+        String a = gpsTrackPath;
+        if (pos != -1) {
+            a = gpsTrackPath.substring(pos);
+        }
         a = a.substring(0, a.length() - 4);
-        outPath = new File(outputDir.getAbsolutePath() + a + "/");
+        outPath = new File(outputDir.getAbsolutePath() + "/" + a + "/");
         return outPath;
     }
 
@@ -116,8 +129,11 @@ public class MightyGenerat0r
     public static void main(String[] args)
     {
         MightyGenerat0r test = new MightyGenerat0r();
+        try {
 
-        test.generate("/examples/untreusee-1206956.gpx");
-        test.shutdown();
+            test.generate("untreusee-1206956.gpx");
+        } finally {
+            test.shutdown();
+        }
     }
 }
