@@ -40,6 +40,7 @@
         this.itemsLoaded = 0;
 
         this.timeToWaitTillGrowAnimation = 0.5;
+        this.growing = false;
 
         /** @property
          * Enthält die sekundäre Szene, in die das Pfad-Prisma
@@ -505,6 +506,7 @@
                 //this.terrainMesh.rotation.x = -0.8;
                 this.clock.start();
                 this.camera.lookAt(this.scene.position);
+                this.growing = true;
                 this.animateStart();
             }
         },
@@ -700,9 +702,15 @@
         animate : function () {
             var delta = this.clock.getDelta();
 
-            this.timeToWaitTillGrowAnimation -= delta;
-            if (this.timeToWaitTillGrowAnimation < 0) {
-                this.shaderUniforms.time.value += delta;
+            if (this.shaderUniforms.time.value / 3 < 1) {
+                this.timeToWaitTillGrowAnimation -= delta;
+                if (this.timeToWaitTillGrowAnimation < 0) {
+                    this.shaderUniforms.time.value += delta;
+                }
+                this.growing = true;
+            }
+            else {
+                this.growing = false;
             }
             THREE.AnimationHandler.update(delta);
             this.controls.update(delta);
@@ -756,7 +764,7 @@
             gl.disable(gl.STENCIL_TEST);
             renderer.setFaceCulling("back");
 
-            if (this.showMarker) {
+            if (!this.growing && this.showMarker) {
                 renderer.render(this.trackScene, this.camera);
             }
         },
