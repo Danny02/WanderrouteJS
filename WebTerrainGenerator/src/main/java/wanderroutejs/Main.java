@@ -1,33 +1,40 @@
 package wanderroutejs;
 
-import wanderroutejs.generators.TriangleStripGenerator;
-import wanderroutejs.generators.HeightmapGenerator;
-import wanderroutejs.generators.TrianglesGenerator;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import org.apache.commons.cli.*;
-import wanderroutejs.datasources.*;
-import wanderroutejs.imageprocessing.ImageUtil2;
-import wanderroutejs.io.PlainJSONModelWriter;
-
-import darwin.geometrie.io.*;
-import darwin.geometrie.unpacked.*;
 
 import static org.apache.commons.cli.OptionBuilder.withArgName;
 
 public class Main
 {
-    private static final int TESS_DEFAULT = 10;
     public static final Options options = new Options();
 
     static {
-        options.addOption(withArgName("file").hasArg().isRequired().withDescription("The SRTM file to convert to a triangle Mesh").withLongOpt("file-path").create("f"));
+        options.addOption(withArgName("track").hasArg().
+                isRequired().
+                withDescription("The file path to the gps track(*.gpx), for which render resource should get created.").
+                withLongOpt("gps-track-path").
+                create("t"));
 
-        options.addOption(withArgName("type").hasArg().withDescription("The OpenGL type of the mesh [TRIANGLE_STRIP, TRINAGLES]. Default is TRIANGLES").withLongOpt("mesh-type").create("t"));
+        options.addOption(withArgName("output").hasArg().
+                withDescription("The output path in which the resource should get created.").
+                withLongOpt("output-path").
+                create("o"));
 
-        options.addOption(withArgName("name").hasArg().withDescription("The JSON variable name to use for the data array.").withLongOpt("jsonVariableName").create("v"));
+        options.addOption(withArgName("tessfactor").hasArg().
+                withDescription("The amount of subdivitions of the terrain grid.").
+                withLongOpt("tesselation-factor").
+                create("tf"));
 
-        options.addOption(withArgName("tessfactor").hasArg().withDescription("The amount of tesselation default is " + TESS_DEFAULT).withLongOpt("tesselation-factor").create("tf"));
+        options.addOption(withArgName("heihgtscale").hasArg().
+                withDescription("The amount the terrain height get scaled.").
+                withLongOpt("terrain-height-scale").
+                create("hs"));
+
+        options.addOption(withArgName("normalscale").hasArg().
+                withDescription("The 'strongness' factor of the terrain normal map(value < 1. means stronger).").
+                withLongOpt("terrain-normal-power").
+                create("ns"));
 
         options.addOption("h", "help", false, null);
     }
@@ -42,19 +49,42 @@ public class Main
                 System.exit(0);
             }
 
-            String fileName = line.getOptionValue('f');
-            String variableName = line.getOptionValue('v', "vertices");
-            String type = line.getOptionValue('t', "TRIANGLES");
+            String trackFile = line.getOptionValue('t');
+            String outputDir = line.getOptionValue('o', "./");
+
             int tessfactor;
             try {
-                tessfactor = Integer.parseInt(line.getOptionValue("tf", "" + TESS_DEFAULT));
+                tessfactor = Integer.parseInt(line.getOptionValue("tf", "" + MightyGenerat0r.DEFAULT_TESS_FACTOR));
             } catch (NumberFormatException ex) {
-                System.out.println("Error while parsing the mesh-precision option, using the default '" + TESS_DEFAULT + "'!");
-                tessfactor = TESS_DEFAULT;
+                System.out.println("Error while parsing the terrain tesselation factor option, using the default '"
+                        + MightyGenerat0r.DEFAULT_TESS_FACTOR + "'!");
+                tessfactor = MightyGenerat0r.DEFAULT_TESS_FACTOR;
             }
 
-            convertToMesh(fileName, tessfactor, variableName, type);
+            float heightScale;
+            try {
+                heightScale = Float.parseFloat(line.getOptionValue("hs", "" + MightyGenerat0r.DEFAULT_HEIGHT_SCALE));
+            } catch (NumberFormatException ex) {
+                System.out.println("Error while parsing the terrain height scale option, using the default '"
+                        + MightyGenerat0r.DEFAULT_HEIGHT_SCALE + "'!");
+                heightScale = MightyGenerat0r.DEFAULT_HEIGHT_SCALE;
+            }
 
+            float normalScale;
+            try {
+                normalScale = Float.parseFloat(line.getOptionValue("ns", "" + MightyGenerat0r.DEFAULT_NORMAL_SCALE));
+            } catch (NumberFormatException ex) {
+                System.out.println("Error while parsing the terrain normal scale option, using the default '"
+                        + MightyGenerat0r.DEFAULT_NORMAL_SCALE + "'!");
+                normalScale = MightyGenerat0r.DEFAULT_NORMAL_SCALE;
+            }
+
+            if(line.hasOption('h'))
+                printUsage();
+
+            File out = new File(outputDir);
+            MightyGenerat0r generator = new MightyGenerat0r(heightScale, normalScale, tessfactor, out);
+            generator.generate(trackFile);
         } catch (ParseException ex) {
             System.out.println(ex.getLocalizedMessage());
             printUsage();
@@ -62,41 +92,9 @@ public class Main
         }
     }
 
-    public static void convertToMesh(String fileName, int tesselation,
-                                     String varName,
-                                     String type) throws IOException
-    {
-        System.out.println("Reading file: " + fileName);
-
-        BufferedImage image = ImageUtil2.loadImage(new File(fileName).toURI().toURL());
-        HeightSource source = new ImageHeightSource(image, tesselation, 1f / 6000);
-
-        String newFileName;
-        HeightmapGenerator generator;
-
-        ModelWriter writer;
-        if ("TRIANGLE_STRIP".equals(type)) {
-            generator = new TriangleStripGenerator(tesselation);
-            newFileName = fileName.replaceAll(".hgt", ".TRIANGLE_STRIP.");
-            writer = new PlainJSONModelWriter();
-        } else {
-            generator = new TrianglesGenerator(tesselation);
-            newFileName = fileName.replaceAll(".hgt", ".TRIANGLES.");
-            writer = new CtmModelWriter();
-        }
-
-        Mesh mesh = generator.generateVertexData(source);
-
-        newFileName += writer.getDefaultFileExtension();
-
-        try (OutputStream out = new FileOutputStream(newFileName)) {
-            writer.writeModel(out, new Model[]{new Model(mesh, null)});
-        }
-    }
-
     private static void printUsage()
     {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("--file-path [OPTIONS]", options);
+        formatter.printHelp("", options);
     }
 }

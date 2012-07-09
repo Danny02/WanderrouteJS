@@ -27,11 +27,10 @@
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-core-asl</artifactId>
-      <version>1.5.2</version>
-      <type>jar</type>
+      <version>1.8.0</version>
     </dependency>
   </dependencies>
-  
+
 
   <build>
     <finalName>GPS-library</finalName>

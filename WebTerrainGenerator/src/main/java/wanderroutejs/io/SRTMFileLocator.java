@@ -22,6 +22,7 @@ import java.net.URL;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.zip.*;
+import org.slf4j.*;
 
 /**
  *
@@ -29,6 +30,7 @@ import java.util.zip.*;
  */
 public class SRTMFileLocator
 {
+    private static final Logger logger = LoggerFactory.getLogger(SRTMFileLocator.class);
     private List<String> fileNames;
     private List<File> files;
 
@@ -81,13 +83,9 @@ public class SRTMFileLocator
 
     private void downloadFiles(File outputDir, String urlString)
     {
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
-
         files = new ArrayList<>();
         for (String fileName : fileNames) {
-            System.out.println("trying to create " + outputDir + fileName + ".zip");
+            logger.info("trying to create " + outputDir + fileName + ".zip");
             try {
                 File path = new File(outputDir, fileName);
                 File pathZip = new File(outputDir, fileName + ".zip");
@@ -106,7 +104,7 @@ public class SRTMFileLocator
 
     private void downloadFile(File outputPath, URL url)
     {
-        System.out.println("Downloading: " + url.toString());
+        logger.info("Downloading: " + url.toString());
         try (FileOutputStream fileStream = new FileOutputStream(outputPath);) {
             ReadableByteChannel rbc = Channels.newChannel(url.openStream());
             fileStream.getChannel().transferFrom(rbc, 0, 1 << 24);
@@ -123,7 +121,7 @@ public class SRTMFileLocator
 
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                System.out.println("Extracting: " + entry);
+                logger.info("Extracting: " + entry);
 
                 // write the files to the disk
                 try (FileOutputStream fos = new FileOutputStream(new File(outputDir, entry.getName()));

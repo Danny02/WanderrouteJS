@@ -16,7 +16,6 @@
  */
 package wanderroutejs.generationtasks;
 
-import wanderroutejs.MightyGenerat0r;
 import java.io.*;
 import wanderroutejs.generators.PathTriangulator;
 import wanderroutejs.io.PlainJSONModelWriter;
@@ -33,10 +32,12 @@ import darwin.util.math.composits.Path;
 public class PathMeshCreationTask implements Runnable
 {
     private final Path<Vector3> path;
+    private final File outPath;
 
-    public PathMeshCreationTask(Path<Vector3> path)
+    public PathMeshCreationTask(Path<Vector3> path, File outPath)
     {
         this.path = path;
+        this.outPath = outPath;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class PathMeshCreationTask implements Runnable
         PathTriangulator trian = new PathTriangulator();
         Mesh pathMesh = trian.buildPathMesh(path);
         ModelWriter writerJson = new PlainJSONModelWriter();
-        File pathFile2 = new File(MightyGenerat0r.OUTPUT_PATH, "path." + writerJson.getDefaultFileExtension());
+        File pathFile2 = new File(outPath, "path." + writerJson.getDefaultFileExtension());
         try (final OutputStream out = new FileOutputStream(pathFile2)) {
             writerJson.writeModel(out, new Model[]{new Model(pathMesh, null)});
         } catch (IOException ex) {

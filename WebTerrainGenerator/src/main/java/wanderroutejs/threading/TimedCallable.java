@@ -17,6 +17,7 @@
 package wanderroutejs.threading;
 
 import java.util.concurrent.Callable;
+import org.slf4j.*;
 
 /**
  *
@@ -24,17 +25,20 @@ import java.util.concurrent.Callable;
  */
 public class TimedCallable<E> implements Callable<E>
 {
+    private final static Logger logger = LoggerFactory.getLogger(TimedCallable.class);
     private final String taskName;
     private final Callable<E> callable;
 
     public TimedCallable(Callable<E> callable)
     {
-        this(callable.getClass().getSimpleName(), callable);
+        this(null, callable);
     }
 
     public TimedCallable(String taskName,
                          Callable<E> callable)
     {
+        if(taskName == null)
+            taskName = callable.getClass().getSimpleName();
         this.taskName = taskName;
         this.callable = callable;
     }
@@ -42,11 +46,11 @@ public class TimedCallable<E> implements Callable<E>
     @Override
     public E call() throws Exception
     {
-        System.out.println("Starting task \"" + taskName + "\"...");
+        logger.info("Starting task \"" + taskName + "\"...");
         long time = System.currentTimeMillis();
         E res = callable.call();
         time = System.currentTimeMillis() - time;
-        System.out.println("Finished task \"" + taskName + "\" in: " + time);
+        logger.info("Finished task \"" + taskName + "\" in: " + time);
         return res;
     }
 }
