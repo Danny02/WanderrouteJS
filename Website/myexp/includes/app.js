@@ -67,10 +67,30 @@
         this.initSigns = this.initSigns.bind(this);
         this.onToggleFlyAlongPath = this.onToggleFlyAlongPath.bind(this);
 
+        this.onDetailScaleChange = this.onDetailScaleChange.bind(this);
+        this.onAmbientScaleChange = this.onAmbientScaleChange.bind(this);
+        this.onAmbientShiftChange = this.onAmbientShiftChange.bind(this);
+
+        this.onDirLight1Change = this.onDirLight1Change.bind(this);
+        this.onDirLight2Change = this.onDirLight2Change.bind(this);
+        this.onMountainColorChange = this.onMountainColorChange.bind(this);
+        this.onValleyColorChange = this.onValleyColorChange.bind(this);
+
+
         this.chkShowMarker = doc.querySelector("[name='show-marker']");
         this.chkShowProfile = doc.querySelector("[name='show-profile']");
         this.chkFlyAlongPath = doc.querySelector("[name='fly-along-path']");
 
+        this.rngDetailScale = doc.querySelector("[name='detail-scale']");
+        this.rngAmbientScale = doc.querySelector("[name='ambient-scale']");
+        this.rngAmbientShift = doc.querySelector("[name='ambient-shift']");
+
+        this.colDirLight1 = doc.querySelector("[name='dir-light-1-color']");
+        this.colDirLight2 = doc.querySelector("[name='dir-light-2-color']");
+
+        this.colValley = doc.querySelector("[name='valley-color']");
+        this.colMountain = doc.querySelector("[name='mountain-color']");
+  
         this.showMarker = true;
 
         this.profilePanel = new global.WanderUte.ProfilePanel("profile-panel");
@@ -207,6 +227,15 @@
             this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
             this.chkShowMarker.addEventListener('change', this.onShowTrackChange, false);
             this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
+            
+            this.rngDetailScale.addEventListener('change', this.onDetailScaleChange, false);
+            this.rngAmbientScale.addEventListener('change', this.onAmbientScaleChange, false);
+            this.rngAmbientShift.addEventListener('change', this.onAmbientShiftChange, false);
+
+            this.colDirLight1.addEventListener('change', this.onDirLight1Change, false);
+            this.colDirLight2.addEventListener('change', this.onDirLight2Change, false);
+            this.colMountain.addEventListener('change', this.onMountainColorChange, false);
+            this.colValley.addEventListener('change', this.onValleyColorChange, false);
         },
 
         /**
@@ -223,6 +252,44 @@
          */
         onShowMarkerChange : function () {
             this.showMarker = this.chkShowMarker.checked;
+        },
+
+
+        onDetailScaleChange  : function (e) {
+            this.shaderUniforms.DETAIL_SCALE.value = Math.sqrt(this.rngDetailScale.value);
+        },
+
+        onAmbientScaleChange : function (e) {
+            this.shaderUniforms.AMBIENT_SCALE.value = this.rngAmbientScale.value;
+        },
+
+        onAmbientShiftChange : function (e) {
+            this.shaderUniforms.AMBIENT_SHIFT.value = this.rngAmbientShift.value;
+        },
+
+        onDirLight1Change : function (e) {
+            this.shaderUniforms.blue.value = this.hexColorToVector3f(this.colDirLight1.value);
+        }, 
+
+        onDirLight2Change : function (e) {
+            this.shaderUniforms.orange.value = this.hexColorToVector3f(this.colDirLight2.value);
+        },
+
+        onMountainColorChange : function (e) {
+            this.shaderUniforms.mountain_color.value = this.hexColorToVector3f(this.colMountain.value);
+        }, 
+
+        onValleyColorChange : function (e) {
+            this.shaderUniforms.valley_color.value = this.hexColorToVector3f(this.colValley.value);
+        },
+
+        hexColorToVector3f : function (hex) {
+            var r = parseInt(hex.substr(1, 2), 16),
+                g = parseInt(hex.substr(3, 2), 16),
+                b = parseInt(hex.substr(5, 2), 16);
+
+            return new THREE.Vector3(r / 255, g / 255, b / 255);
+            
         },
 
         /**
@@ -244,8 +311,44 @@
                 time: {
                     type: "f",
                     value: 1.0
+                },
+                blue : {
+                    type: "v3",
+                    value : new THREE.Vector3(74 / 255.0, 96 / 255.0, 126 / 255.0)
+                },
+                orange : {
+                    type : "v3",
+                    value : new THREE.Vector3(126 / 255.0, 90 / 255.0, 51 / 255.0)
+                },
+                mountain_color : {
+                    type: "v3",
+                    value : new THREE.Vector3(126 / 255.0, 90 / 255.0, 51 / 255.0)
+                },
+                valley_color : {
+                    type : "v3",
+                    value : new THREE.Vector3(126 / 255.0, 90 / 255.0, 51 / 255.0)
+                },
+                DETAIL_SCALE : {
+                    type : "f",
+                    value : 2.0
+                },
+                AMBIENT_SCALE : {
+                    type : "f",
+                    value : 1.0
+                },
+                AMBIENT_SHIFT : {
+                    type : "f",
+                    value : 0.4
                 }
             };
+
+            this.onDetailScaleChange();
+            this.onAmbientScaleChange();
+            this.onAmbientShiftChange();
+            this.onDirLight1Change();
+            this.onDirLight2Change();
+            this.onMountainColorChange();
+            this.onValleyColorChange();
 
             loader = new THREE.CTMLoader(this.renderer.context);
             loader.load("resources/map.ctm", this.onMeshLoaded, false, false);
@@ -308,6 +411,7 @@
         onMeshLoaded : function (geometry) {
             var shaderMaterial = new THREE.ShaderMaterial({
                     uniforms : this.shaderUniforms,
+
                     vertexShader:   this.$('terrain.vert').textContent,
                     fragmentShader: this.$('terrain.frag').textContent
                 });
@@ -351,8 +455,8 @@
 
 
             roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
-            roadMesh.position.set(-0.5, -0.5, 0.0);
-            //roadMesh.rotation.x = -0.8;
+            roadMesh.position.set(-0.5, 0.0, -0.5);
+            roadMesh.rotation.x = 1.;
             roadMesh.material.depthWrite = false;
             this.trackProjection.scene.add(this.roadMesh);
 
@@ -581,6 +685,10 @@
             THREE.AnimationHandler.update(delta);
             this.controls.update(delta);
 
+            if (this.flight) {
+                this.flight.update(delta);
+            }
+
 
             this.render();
             global.requestAnimationFrame(this.animate);
@@ -699,25 +807,11 @@
         startFlying : function () {
             this.fying = true;
 
-
+/*
             this.origControls = this.controls;
             this.origCameraPosition = this.camera.position;
 
             var controls = new THREE.PathControls(this.camera);
-/*
-            controls.waypoints = this.waypoints;
-            controls.duration = 120;
-            controls.useConstantSpeed = true;
-            //controls.createDebugPath = true;
-            //controls.createDebugDummy = true;
-            controls.lookSpeed = 0.06;
-            controls.lookVertical = true;
-            controls.lookHorizontal = false;
-            controls.verticalAngleMap = { srcRange: [ -2 * Math.PI, 2 * Math.PI ], dstRange: [ -5, 0 ] };
-            controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -0.5, -0.5 ] };
-            controls.lon = 180;
-            controls.lat = -45;
-*/
 
             controls.waypoints = this.waypoints;
             controls.duration = 28;
@@ -730,12 +824,20 @@
             controls.verticalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [ -2.1, -4.8 ] };
             controls.horizontalAngleMap = { srcRange: [ 0, 2 * Math.PI ], dstRange: [0.3, Math.PI - 0.3 ] };
             controls.lon = 180;
+            controls.lat = 0;
             this.controls = controls;
             this.controls.init();
 
             this.scene.add(controls.animationParent);
 
             controls.animation.play(true, 0);
+            */
+
+            this.flight = (new WanderUte.PathFlight({
+                camera : this.camera,
+                waypoints : this.waypoints,
+                duration : 60
+            })).init();
         },
 
         /**

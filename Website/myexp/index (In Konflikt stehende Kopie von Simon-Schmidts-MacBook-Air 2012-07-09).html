@@ -32,44 +32,16 @@
                 </label>
             </div>
             <hr />
-            <details>
-                <summary>
-                    Settings
-                </summary>
-                <form>
-                    <div class="row">
-                        <label>Detail Scale:
-                            <input type="range" value="2.0" step="0.01" min="0.0" max="2.0" name="detail-scale" onInput="oDetailScale.value=value" /><output name="oDetailScale"></output>
-                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Kontrast:
-                            <input type="range" value="1.4" step="0.05" min="0.0" max="3.0" name="ambient-scale" onInput="oAmbientScale.value=value" /><output name="oAmbientScale"></output>
-                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Helligkeit:
-                            <input type="range" value="0.6" step="0.05" min="-0.5" max="1" name="ambient-shift" onInput="oAmbientShift.value=value" /><output name="oAmbientShift"></output>
-                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Dir Light 1 Color:
-                            <input type="color" name="dir-light-1-color" value="#8ec7ff" onInput="oLight1.value=value" /><output name="oLight1"></output>                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Dir Light 2 Color:
-                            <input type="color" name="dir-light-2-color" value="#ffebbb" onInput="oLight2.value=value" /><output name="oLight2"></output>                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Valley color:
-                            <input type="color" name="valley-color" value="#508212" onInput="oValley.value=value" /><output name="oValley"></output>                        </label>
-                    </div>
-                    <div class="row">
-                        <label>Mountain color:
-                            <input type="color" name="mountain-color" value="#a6a2ae" onInput="oMountain.value=value" /><output name="oMountain"></output>                        </label>
-                    </div>
-                </form>
-            </details>
+            <div class="row">
+                <label>Dir Light 1 Color:
+                    <input type="color" />
+                </label>
+            </div>
+            <div class="row">
+                <label>Dir Light 2 Color:
+                    <input type="color" />
+                </label>
+            </div>
         </div>
 
         <canvas id="profile-panel" width="200" height="120" class="panel profile show"></canvas>
@@ -124,8 +96,7 @@
 
 		    varying vec2 texcoords;
 		    varying vec3 nor;
-            varying float ambient;
-            varying float height;
+		    varying float ambient;
 
 		    uniform float time;
 
@@ -133,9 +104,7 @@
 		    	ambient = uv.x;
 		    	nor = normal;
 		        vec3 pos = position;
-                pos.y *= pow(min(time / 3., 1.),1.);
-
-                height = clamp(pos.y / 0.2, 0., 1.);
+		        pos.y *= pow(min(time/3., 1.),1.);
 
 		        texcoords = pos.xz+0.5;
 		        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
@@ -153,21 +122,16 @@
 		    uniform  sampler2D normalMap;
 		    varying vec2 texcoords;
 		    varying vec3 nor;
-            varying float ambient;
-            varying float height;
+		    varying float ambient;
 
 		    const vec3 light1 = vec3(0.7, 2., 2.);
 		    const vec3 UP = vec3(0.,1.,0.);
 
 		    uniform vec3 blue;
 		    uniform vec3 orange;
-
 		    uniform float DETAIL_SCALE;
 		    uniform float AMBIENT_SHIFT;
-            uniform float AMBIENT_SCALE;
-
-            uniform vec3 valley_color;
-            uniform vec3 mountain_color;
+		    uniform float AMBIENT_SCALE;
 
 			float cubicPulse( float c, float w, float x )
 			{
@@ -192,16 +156,12 @@
 		        	N = vertexNormal;
 		        #endif
 
-                vec3 color = vec3(0.);
-
-                float h = cubicPulse(1., 1., height);
-
-                vec3 diffuse = mix(valley_color, mountain_color, h);
+		        vec3 color = vec3(0.);
 
 		        vec3 L1 = normalize(light1);
-		        color += dot(N, L1) * blue * diffuse;
+		        color += dot(N, L1) * blue;
 		        vec3 L2 = reflect(L1, UP);
-		        color += dot(N, -L2) * orange * diffuse;
+		        color += dot(N, -L2) * orange;
 
 		        #if USE_AMBIENT_OCCLUSION == 1
 			        float a = ambient;//cubicPulse(1., 1., ambient);

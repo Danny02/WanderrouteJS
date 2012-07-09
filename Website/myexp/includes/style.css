@@ -70,6 +70,10 @@ form input.small {
     padding:4px;
 }
 
+.panel .controls {
+    z-index: 10;
+}
+
 .controls label {
     width: 200px;
 }
