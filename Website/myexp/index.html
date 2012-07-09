@@ -25,12 +25,13 @@
                     Show Profile
                 </label>
             </div>
+            <!--
             <div class="row">
                 <label>
                     <input type="checkbox" name="fly-along-path" />
                     Fly along path
                 </label>
-            </div>
+            </div>-->
             <hr />
             <details>
                 <summary>
@@ -105,17 +106,6 @@
             </div>
         </div>
 
-
-		<script type="x-shader/x-vertex" id="simple.vert">
-		    void main(){
-		        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-		    }
-		</script>
-		<script type="x-shader/x-fragment" id="test.frag">
-		    void main(){
-		        gl_FragColor = vec4(1.,0.,0.,0.3);
-		    }
-		</script>
 		<script type="x-shader/x-vertex" id="terrain.vert">
 		    // switch on high precision floats
 		    #ifdef GL_ES

@@ -61,7 +61,7 @@
         this.onTrackMashLoaded = this.onTrackMashLoaded.bind(this);
         this.onTrackJSONLoaded = this.onTrackJSONLoaded.bind(this);
         this.onCreateSign = this.onCreateSign.bind(this);
-        this.onShowMarker = this.onShowMarkerChange.bind(this);
+        this.onShowMarkerChange = this.onShowMarkerChange.bind(this);
         this.onShowProfileChange = this.onShowProfileChange.bind(this);
         this.displaySign = this.displaySign.bind(this);
         this.initSigns = this.initSigns.bind(this);
@@ -225,8 +225,8 @@
             global.addEventListener('resize', this.onWindowResize, false);
             this.container.addEventListener('mousedown', this.onDocumentMouseDown, true);
             this.chkShowProfile.addEventListener('change', this.onShowProfileChange, false);
-            this.chkShowMarker.addEventListener('change', this.onShowTrackChange, false);
-            this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
+            this.chkShowMarker.addEventListener('change', this.onShowMarkerChange, false);
+            //this.chkFlyAlongPath.addEventListener('change', this.onToggleFlyAlongPath, false);
             
             this.rngDetailScale.addEventListener('change', this.onDetailScaleChange, false);
             this.rngAmbientScale.addEventListener('change', this.onAmbientScaleChange, false);
@@ -448,15 +448,16 @@
 
             trackProjection.rtTextureDepth = new THREE.WebGLRenderTarget(this.SCREEN_WIDTH, this.SCREEN_HEIGHT, options);
 
-            roadTest = new THREE.ShaderMaterial({
-                vertexShader:   this.$('simple.vert').textContent,
-                fragmentShader: this.$('test.frag').textContent
+            roadTest = new THREE.MeshBasicMaterial({
+                opacity : 0.3,
+                transparent : true,
+                color : 0xff0000
             });
 
 
-            roadMesh = this.roadMesh = new THREE.Mesh(geometry, this.roadTest);
+            roadMesh = this.roadMesh = new THREE.Mesh(geometry, roadTest);
             roadMesh.position.set(-0.5, 0.0, -0.5);
-            roadMesh.rotation.x = 1.;
+            roadMesh.rotation.x = 1.0;
             roadMesh.material.depthWrite = false;
             this.trackProjection.scene.add(this.roadMesh);
 
