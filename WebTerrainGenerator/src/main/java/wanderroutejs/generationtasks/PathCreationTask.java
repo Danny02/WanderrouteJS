@@ -16,13 +16,11 @@
  */
 package wanderroutejs.generationtasks;
 
-import java.awt.Rectangle;
-import java.io.File;
-import wanderroutejs.MightyGenerat0r;
-import wanderroutejs.generators.TrackGenerator;
-
 import darwin.util.math.base.vector.Vector3;
 import darwin.util.math.composits.Path;
+import java.awt.Rectangle;
+import wanderroutejs.MightyGenerat0r;
+import wanderroutejs.generators.TrackGenerator;
 
 /**
  *
@@ -33,11 +31,11 @@ public class PathCreationTask implements Runnable
     private final TrackGenerator trackGenerator;
     private final Rectangle boundingBox;
     private final MightyGenerat0r outer;
-    private final File outPath;
+    private final java.nio.file.Path outPath;
     private final float heightScale;
 
     public PathCreationTask(TrackGenerator trackGenerator, Rectangle boundingBox,
-                            MightyGenerat0r outer, File outPath,
+                            MightyGenerat0r outer, java.nio.file.Path outPath,
                             float heightScale)
     {
         this.trackGenerator = trackGenerator;

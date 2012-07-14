@@ -18,6 +18,7 @@ package wanderroutejs.generationtasks;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Path;
 import java.util.concurrent.*;
 import javax.imageio.ImageIO;
 
@@ -25,25 +26,23 @@ import javax.imageio.ImageIO;
  *
  * @author daniel
  */
-public class ImageMapWriteTask implements Runnable
-{
+public class ImageMapWriteTask implements Runnable {
+
     private final Future<BufferedImage> image;
     private final String imageName;
-    private final File outPath;
+    private final Path outPath;
 
     public ImageMapWriteTask(Future<BufferedImage> image, String imageName,
-                             File outPath)
-    {
+            Path outPath) {
         this.image = image;
         this.imageName = imageName;
         this.outPath = outPath;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         try {
-            ImageIO.write(image.get(), "png", new File(outPath, imageName + ".png"));
+            ImageIO.write(image.get(), "png", outPath.resolve(imageName + ".png").toFile());
         } catch (InterruptedException | ExecutionException | IOException ex) {
             ex.printStackTrace();
         }

@@ -16,31 +16,32 @@
  */
 package wanderroutejs.generationtasks;
 
+import darwin.geometrie.io.*;
+import darwin.geometrie.unpacked.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.*;
 import wanderroutejs.datasources.*;
 import wanderroutejs.generators.*;
-
-import darwin.geometrie.io.*;
-import darwin.geometrie.unpacked.*;
 
 /**
  *
  * @author daniel
  */
-public class MeshCreationTask implements Runnable
-{
+public class MeshCreationTask implements Runnable {
+
     private final Future<BufferedImage> ambientMap;
     private final BufferedImage height;
-    private final File file;
+    private final Path file;
     private final float heightScale;
     private final int tessFactor;
 
     public MeshCreationTask(Future<BufferedImage> ambientMap,
-                            BufferedImage height, File file, float heightScale,
-                            int tessFactor)
-    {
+            BufferedImage height, Path file, float heightScale,
+            int tessFactor) {
         this.ambientMap = ambientMap;
         this.height = height;
         this.file = file;
@@ -49,8 +50,7 @@ public class MeshCreationTask implements Runnable
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         try {
             BufferedImage ambientOcclusionImg = ambientMap.get();
             Model m = generateMesh(height, ambientOcclusionImg);
@@ -60,8 +60,7 @@ public class MeshCreationTask implements Runnable
         }
     }
 
-    private Model generateMesh(BufferedImage height, BufferedImage ambient)
-    {
+    private Model generateMesh(BufferedImage height, BufferedImage ambient) {
         HeightSource ambientSource = new ImageHeightSource(ambient, tessFactor * 3, 1f / 255);
         HeightmapGenerator generator = new GridHeightmapWithNormals(tessFactor, ambientSource, height);
         HeightSource source = new ImageHeightSource(height, tessFactor * 3, heightScale);
@@ -69,10 +68,10 @@ public class MeshCreationTask implements Runnable
         return new Model(mesh, null);
     }
 
-    private void saveMesh(Model mesh, File file) throws IOException
-    {
+    private void saveMesh(Model mesh, Path file) throws IOException {
         ModelWriter writer = new CtmModelWriter();
-        try (final OutputStream out = new FileOutputStream(file.getPath() + '.' + writer.getDefaultFileExtension())) {
+        Path outFile = Paths.get(file.toString() + '.' + writer.getDefaultFileExtension());
+        try (final OutputStream out = Files.newOutputStream(outFile)) {
             writer.writeModel(out, new Model[]{mesh});
         }
     }

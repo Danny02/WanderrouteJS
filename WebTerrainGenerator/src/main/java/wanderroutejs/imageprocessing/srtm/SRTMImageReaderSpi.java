@@ -16,6 +16,7 @@
  */
 package wanderroutejs.imageprocessing.srtm;
 
+import com.sun.imageio.plugins.jpeg.JPEGImageWriterSpi;
 import java.io.IOException;
 import java.util.Locale;
 import javax.imageio.ImageReader;
@@ -23,6 +24,7 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
 
 import darwin.annotations.ServiceProvider;
+import javax.imageio.ImageIO;
 
 /**
  *
@@ -35,6 +37,11 @@ public class SRTMImageReaderSpi extends ImageReaderSpi
     public SRTMImageReaderSpi()
     {
         inputTypes = new Class[]{ImageInputStream.class};
+    }
+
+    @Override
+    public String[] getMIMETypes() {
+        return new String[]{"image/hgt"};
     }
 
     @Override
@@ -51,7 +58,7 @@ public class SRTMImageReaderSpi extends ImageReaderSpi
         }
 
         if (source instanceof ImageInputStream) {
-            ImageInputStream stream = (ImageInputStream) source;
+//            ImageInputStream stream = (ImageInputStream) source;
         }
         return false;
     }

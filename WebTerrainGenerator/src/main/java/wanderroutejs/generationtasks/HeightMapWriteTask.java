@@ -17,31 +17,29 @@
 package wanderroutejs.generationtasks;
 
 import java.awt.image.*;
-import java.io.File;
+import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
 /**
  *
  * @author daniel
  */
-public class HeightMapWriteTask implements Runnable
-{
-    private final BufferedImage height;
-    private final File outPath;
+public class HeightMapWriteTask implements Runnable {
 
-    public HeightMapWriteTask(BufferedImage height, File outPath)
-    {
+    private final BufferedImage height;
+    private final Path outPath;
+
+    public HeightMapWriteTask(BufferedImage height, Path outPath) {
         this.height = height;
         this.outPath = outPath;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         try {
             BufferedImage hout = new BufferedImage(height.getWidth(), height.getHeight(), height.getType());
             new RescaleOp(30, 30, null).filter(height, hout);
-            ImageIO.write(hout, "png", new File(outPath, "heihgtmap.png"));
+            ImageIO.write(hout, "png", outPath.resolve("heihgtmap.png").toFile());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -16,14 +16,14 @@
  */
 package wanderroutejs.generationtasks;
 
-import java.io.*;
-import wanderroutejs.generators.PathTriangulator;
-import wanderroutejs.io.PlainJSONModelWriter;
-
 import darwin.geometrie.io.ModelWriter;
 import darwin.geometrie.unpacked.*;
 import darwin.util.math.base.vector.Vector3;
 import darwin.util.math.composits.Path;
+import java.io.*;
+import java.nio.file.Files;
+import wanderroutejs.generators.PathTriangulator;
+import wanderroutejs.io.PlainJSONModelWriter;
 
 /**
  *
@@ -32,9 +32,9 @@ import darwin.util.math.composits.Path;
 public class PathMeshCreationTask implements Runnable
 {
     private final Path<Vector3> path;
-    private final File outPath;
+    private final java.nio.file.Path outPath;
 
-    public PathMeshCreationTask(Path<Vector3> path, File outPath)
+    public PathMeshCreationTask(Path<Vector3> path, java.nio.file.Path outPath)
     {
         this.path = path;
         this.outPath = outPath;
@@ -46,8 +46,9 @@ public class PathMeshCreationTask implements Runnable
         PathTriangulator trian = new PathTriangulator();
         Mesh pathMesh = trian.buildPathMesh(path);
         ModelWriter writerJson = new PlainJSONModelWriter();
-        File pathFile2 = new File(outPath, "path." + writerJson.getDefaultFileExtension());
-        try (final OutputStream out = new FileOutputStream(pathFile2)) {
+        java.nio.file.Path np = outPath.resolve("path."+writerJson.getDefaultFileExtension());
+        
+        try (final OutputStream out = Files.newOutputStream(np)) {
             writerJson.writeModel(out, new Model[]{new Model(pathMesh, null)});
         } catch (IOException ex) {
             ex.printStackTrace();

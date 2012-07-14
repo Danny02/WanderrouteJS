@@ -1,12 +1,13 @@
 package wanderroutejs;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.apache.commons.cli.*;
-
 import static org.apache.commons.cli.OptionBuilder.withArgName;
 
-public class Main
-{
+public class Main {
+
     public static final Options options = new Options();
 
     static {
@@ -23,8 +24,7 @@ public class Main
         options.addOption("h", "help", false, null);
     }
 
-    public static void main(String[] args) throws IOException
-    {
+    public static void main(String[] args) throws IOException {
         CommandLineParser parser = new PosixParser();
         try {
             CommandLine line = parser.parse(options, args);
@@ -67,7 +67,7 @@ public class Main
                 printUsage();
             }
 
-            File out = new File(outputDir);
+            Path out = Paths.get(outputDir);
             MightyGenerat0r generator = new MightyGenerat0r(heightScale, normalScale, tessfactor, out);
             try {
                 generator.generate(trackFile);
@@ -85,8 +85,7 @@ public class Main
         }
     }
 
-    private static void printUsage()
-    {
+    private static void printUsage() {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("--gps-track-path [-o path -tf factor -hs scale -ns scale]", options);
     }

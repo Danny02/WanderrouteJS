@@ -17,127 +17,59 @@
 package wanderroutejs.io;
 
 import java.awt.Rectangle;
-import java.io.*;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.*;
+import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.*;
-import org.slf4j.*;
 
 /**
  *
  * @author simonschmidt
  */
-public class SRTMFileLocator
-{
-    private static final Logger logger = LoggerFactory.getLogger(SRTMFileLocator.class);
-    private List<String> fileNames;
-    private List<File> files;
+public class SRTMFileLocator {
 
-    public SRTMFileLocator loadRectangle(Rectangle boundingBox)
-    {
-        // fetch SRTM
-        generateFileNames(boundingBox);
+    public static final String SERVER_URL = "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/";
+    private static final String SRTM_TILE_FILE_NAME_FORMAT = "N%1$02dE%2$03d.hgt.zip";
+    private final Path outputDir;
 
-        return this;
+    public SRTMFileLocator(Path outputDir) {
+        if (!Files.isDirectory(outputDir)) {
+            throw new IllegalArgumentException();
+        }
+        this.outputDir = outputDir;
     }
 
-    public SRTMFileLocator loadSRTMFiles(File outputDir)
-    {
-        assert outputDir.isDirectory();
-        assert fileNames != null : "no rectangle specified";
-
-        String urlString = getSRTMFileUrlString();
-
-        downloadFiles(outputDir, urlString);
-
-        return this;
-    }
-
-    public Iterable<File> getFiles()
-    {
-        return files;
-    }
-
-    private void generateFileNames(Rectangle boundingBox)
-    {
-        fileNames = new ArrayList<>();
-
-        int startX = boundingBox.x,
-                startY = boundingBox.y;
-
-        for (int y = startY; y < startY + boundingBox.height; y++) {
-            for (int x = startX; x < startX + boundingBox.width; x++) {
-                // create filenames like "N50E011.hgt.zip"
-                fileNames.add(String.format("N%1$02dE%2$03d.hgt", y, x));
+    public Callable<Path>[] downloadFiles(Rectangle bBox) {
+        Callable<Path>[] tasks = new Callable[bBox.height * bBox.width];
+        int startX = bBox.x;
+        int startY = bBox.y;
+        for (int y = 0; y < bBox.height; y++) {
+            for (int x = 0; x < bBox.width; x++) {
+                URL tile = getSRTMTileUrl(startX + x, startY + y);
+                tasks[y * bBox.width + x] = new SRTMDownloadTask(tile, outputDir);
             }
         }
+        return tasks;
     }
 
-    private String getSRTMFileUrlString()
-    {
+    private URL getSRTMTileUrl(int x, int y) {
         // TODO: determine continet
-        String continet = "Eurasia";
-        return "http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/" + continet + "/";
-    }
+        String continet = "Eurasia/";
 
-    private void downloadFiles(File outputDir, String urlString)
-    {
-        files = new ArrayList<>();
-        for (String fileName : fileNames) {
-            logger.info("trying to create " + outputDir + fileName + ".zip");
-            try {
-                File path = new File(outputDir, fileName);
-                File pathZip = new File(outputDir, fileName + ".zip");
+        StringBuilder builder = new StringBuilder(SERVER_URL).
+                append(continet).
+                append(String.format(SRTM_TILE_FILE_NAME_FORMAT, y, x));
 
-                downloadFile(pathZip, new URL(urlString + fileName + ".zip"));
-
-                unzipFile(pathZip, outputDir);
-
-                files.add(path);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-
+        try {
+            return new URL(builder.toString());
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Unreachable code path");
         }
-    }
-
-    private void downloadFile(File outputPath, URL url)
-    {
-        logger.info("Downloading: " + url.toString());
-        try (FileOutputStream fileStream = new FileOutputStream(outputPath);) {
-            ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-            fileStream.getChannel().transferFrom(rbc, 0, 1 << 24);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
-    final int BUFFER = 2048;
-
-    private void unzipFile(File file, File outputDir)
-    {
-        try (FileInputStream fis = new FileInputStream(file);
-             ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fis));) {
-
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                logger.info("Extracting: " + entry);
-
-                // write the files to the disk
-                try (FileOutputStream fos = new FileOutputStream(new File(outputDir, entry.getName()));
-                     BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);) {
-
-                    byte data[] = new byte[BUFFER];
-                    int count;
-                    while ((count = zis.read(data, 0, BUFFER)) != -1) {
-                        dest.write(data, 0, count);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        file.delete();
     }
 }

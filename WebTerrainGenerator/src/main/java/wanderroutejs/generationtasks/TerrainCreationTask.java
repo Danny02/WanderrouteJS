@@ -19,6 +19,8 @@ package wanderroutejs.generationtasks;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Path;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import org.slf4j.*;
 import wanderroutejs.MightyGenerat0r;
@@ -29,19 +31,18 @@ import wanderroutejs.io.SRTMFileLocator;
  *
  * @author daniel
  */
-public class TerrainCreationTask implements Runnable
-{
+public class TerrainCreationTask implements Runnable {
+
     private final static Logger logger = LoggerFactory.getLogger(TerrainCreationTask.class);
     private final Rectangle boundingBox;
     private final MightyGenerat0r outer;
-    private final File outPath;
+    private final Path outPath;
     private final float normalScale, heightScale;
     private final int tessFactor;
 
     public TerrainCreationTask(Rectangle boundingBox, MightyGenerat0r outer,
-                               File outPath, float normalScale,
-                               float heightScale, int tessFactor)
-    {
+            Path outPath, float normalScale,
+            float heightScale, int tessFactor) {
         this.boundingBox = boundingBox;
         this.outer = outer;
         this.outPath = outPath;
@@ -51,32 +52,30 @@ public class TerrainCreationTask implements Runnable
     }
 
     @Override
-    public void run()
-    {
-        try {
-            long time = System.currentTimeMillis();
-            logger.info("Download SRTM tiles");
-            Iterable<File> files = new SRTMFileLocator().loadRectangle(boundingBox).loadSRTMFiles(outPath).getFiles();
-            logger.info("\tFinishe downloading SRTM tiles in: " + (System.currentTimeMillis() - time));
+    public void run() {
+        Callable<Path>[] files = new SRTMFileLocator(outPath).downloadFiles(boundingBox);
 
-            generateMaps(files);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        for (Callable<Path> file : files) {
+            try {
+                this.generateMaps(file);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
-    private void generateMaps(Iterable<File> files) throws IOException
-    {
-        for (File file : files) {
+    private void generateMaps(Iterable<Path> files) throws IOException {
+        for (Path file : files) {
             this.generateMaps(file);
         }
     }
 
-    private void generateMaps(File file) throws IOException
-    {
+    private void generateMaps(Callable<Path> task) throws Exception {
+        Path file = task.call();
+
         logger.info("Start loading heightmap texture for " + file + "...");
         long time = System.currentTimeMillis();
-        BufferedImage height = ImageUtil2.loadImage(file.toURI().toURL());
+        BufferedImage height = ImageUtil2.loadImage(file);
         logger.info("\tFinished loading in " + (System.currentTimeMillis() - time));
 
         Future<BufferedImage> normalMap = outer.submitTask("normal map creation", new NormalMapCreationTask(height, normalScale));

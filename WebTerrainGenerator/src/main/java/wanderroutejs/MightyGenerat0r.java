@@ -2,15 +2,14 @@ package wanderroutejs;
 
 import java.awt.Rectangle;
 import java.io.*;
+import java.nio.file.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
-import java.util.logging.Level;
 import org.slf4j.*;
 import wanderroutejs.generationtasks.*;
 import wanderroutejs.generators.TrackGenerator;
 import wanderroutejs.threading.*;
 
-import darwin.geometrie.io.ResourcesLoader;
 
 /**
  * Hello world!
@@ -26,7 +25,7 @@ public class MightyGenerat0r
     //Parameter
     private final float heightScale, normalScale;
     private final int tessFactor;
-    private final File outputDir;
+    private final Path outputDir;
     //Threading fields
     private ExecutorService threadPool;
     private final Phaser phaser = new Phaser();
@@ -34,11 +33,11 @@ public class MightyGenerat0r
 
     public MightyGenerat0r()
     {
-        this(DEFAULT_HEIGHT_SCALE, DEFAULT_NORMAL_SCALE, DEFAULT_TESS_FACTOR, new File("./"));
+        this(DEFAULT_HEIGHT_SCALE, DEFAULT_NORMAL_SCALE, DEFAULT_TESS_FACTOR, Paths.get("."));
     }
 
     public MightyGenerat0r(float heightScale, float normalScale, int tessFactor,
-                           File outputDir)
+                           Path outputDir)
     {
         this.heightScale = heightScale;
         this.normalScale = normalScale;
@@ -55,23 +54,23 @@ public class MightyGenerat0r
         long time = System.currentTimeMillis();
 
 
-        File test = new File(gpsPathFile);
-        if (!test.canRead()) {
-            logger.error("Can not read File: "+test.getAbsolutePath());
+        Path test = Paths.get(gpsPathFile);
+        if (!Files.isReadable(test)) {
+            logger.error("Can not read File: "+test.toAbsolutePath());
             throw new IOException("Could not read File");
         }
 
-        InputStream in = new FileInputStream(test);
+        InputStream in = Files.newInputStream(test);
 
         final TrackGenerator trackGenerator = TrackGenerator.fromStream(in);
         final Rectangle boundingBox = trackGenerator.getTripBoundingBox();
 
         logger.info("Generating data for " + boundingBox);
 
-        File outPath = getOutputPath(gpsPathFile);
+        Path outPath = getOutputPath(gpsPathFile);
 
-        if (!outPath.exists()) {
-            outPath.mkdirs();
+        if (Files.notExists(outPath)) {
+            Files.createDirectory(outPath);
         }
 
         submitTask("terrain creation", new TerrainCreationTask(boundingBox, this, outPath,
@@ -108,17 +107,15 @@ public class MightyGenerat0r
         return threadPool;
     }
 
-    private File getOutputPath(String gpsTrackPath)
+    private Path getOutputPath(String gpsTrackPath)
     {
-        File outPath;
         int pos = gpsTrackPath.lastIndexOf('/');
         String a = gpsTrackPath;
         if (pos != -1) {
             a = gpsTrackPath.substring(pos);
         }
         a = a.substring(0, a.length() - 4);
-        outPath = new File(outputDir.getAbsolutePath() + "/" + a + "/");
-        return outPath;
+        return outputDir.resolve(a);
     }
 
     public void shutdown()
@@ -136,6 +133,7 @@ public class MightyGenerat0r
 
             test.generate("untreusee-1206956.gpx");
         } catch (Throwable t) {
+            t.printStackTrace();
         } finally {
             test.shutdown();
         }
