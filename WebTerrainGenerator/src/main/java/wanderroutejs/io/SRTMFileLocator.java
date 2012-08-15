@@ -17,16 +17,10 @@
 package wanderroutejs.io;
 
 import java.awt.Rectangle;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.*;
 import java.nio.file.*;
-import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.*;
 
 /**
  *

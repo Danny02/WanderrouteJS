@@ -1,12 +1,17 @@
 package wanderroutejs;
 
 import java.awt.Rectangle;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.*;
-import org.slf4j.*;
-import wanderroutejs.generationtasks.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import wanderroutejs.generationtasks.PathCreationTask;
+import wanderroutejs.generationtasks.TerrainCreationTask;
 import wanderroutejs.generators.TrackGenerator;
 import wanderroutejs.threading.*;
 

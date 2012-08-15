@@ -19,23 +19,24 @@ package wanderroutejs.imageprocessing.srtm;
 import com.sun.imageio.plugins.jpeg.JPEGImageWriterSpi;
 import java.io.IOException;
 import java.util.Locale;
+
+import com.sun.imageio.plugins.jpeg.JPEGImageReaderSpi;
+import com.sun.imageio.plugins.png.PNGImageReaderSpi;
+import com.sun.imageio.plugins.png.PNGImageWriterSpi;
 import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
-
+import static wanderroutejs.imageprocessing.srtm.SRTMImageReader.Version.*;
 import darwin.annotations.ServiceProvider;
-import javax.imageio.ImageIO;
 
 /**
  *
  * @author daniel
  */
 @ServiceProvider(ImageReaderSpi.class)
-public class SRTMImageReaderSpi extends ImageReaderSpi
-{
+public class SRTMImageReaderSpi extends ImageReaderSpi {
 
-    public SRTMImageReaderSpi()
-    {
+    public SRTMImageReaderSpi() {
         inputTypes = new Class[]{ImageInputStream.class};
     }
 
@@ -45,33 +46,36 @@ public class SRTMImageReaderSpi extends ImageReaderSpi
     }
 
     @Override
-    public String[] getFileSuffixes()
-    {
-        return new String[]{"hgt","HGT"};
+    public String[] getFileSuffixes() {
+        return new String[]{"hgt", "HGT"};
     }
 
     @Override
-    public boolean canDecodeInput(Object source) throws IOException
-    {
+    public boolean canDecodeInput(Object source) throws IOException {
         if (source == null) {
             throw new IllegalArgumentException();
         }
 
         if (source instanceof ImageInputStream) {
-//            ImageInputStream stream = (ImageInputStream) source;
+            ImageInputStream stream = (ImageInputStream) source;
+
+            int SHORT_BYTE_SIZE = 2;
+            int SRMT3_SIZE = SRTM3.gridSize * SRTM3.gridSize * SHORT_BYTE_SIZE;
+            int SRMT1_SIZE = SRTM1.gridSize * SRTM1.gridSize * SHORT_BYTE_SIZE;
+
+            long size = stream.length();
+            return size == SRMT1_SIZE || size == SRMT3_SIZE;
         }
         return false;
     }
 
     @Override
-    public ImageReader createReaderInstance(Object extension) throws IOException
-    {
+    public ImageReader createReaderInstance(Object extension) throws IOException {
         return new SRTMImageReader(this);
     }
 
     @Override
-    public String getDescription(Locale locale)
-    {
+    public String getDescription(Locale locale) {
         return "Reads SRTM files(*.hgt), which encode a heightmap of a specific region of the world.";
     }
 }

@@ -18,13 +18,12 @@ package wanderroutejs.generators;
 
 import com.fmt.gps.data.GpxFileDataAccess;
 import com.fmt.gps.track.*;
+import darwin.util.math.base.vector.Vector3;
+import darwin.util.math.composits.Path;
 import java.awt.Rectangle;
 import java.io.*;
 import java.net.URL;
 import java.util.List;
-
-import darwin.util.math.base.vector.Vector3;
-import darwin.util.math.composits.Path;
 
 /**
  *

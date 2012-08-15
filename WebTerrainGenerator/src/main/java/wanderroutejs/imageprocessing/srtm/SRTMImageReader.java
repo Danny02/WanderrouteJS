@@ -142,21 +142,22 @@ public class SRTMImageReader extends ImageReader
 
     private Version getVersion() throws IOException
     {
+        int SHORT_BYTE_SIZE = 2;
+        int SRMT3_SIZE = Version.SRTM3.gridSize * Version.SRTM3.gridSize * SHORT_BYTE_SIZE;
         if (version == null) {
 
             ImageInputStream stream = getStream();
 
             long size = stream.length();
             if (size != -1) {
-                if (size / Version.SRTM1.gridSize == Version.SRTM1.gridSize) {
-                    version = Version.SRTM1;
-                } else {
+                if (size == SRMT3_SIZE) {
                     version = Version.SRTM3;
+                } else {
+                    version = Version.SRTM1;
                 }
             } else {
                 stream.mark();
-                size = Version.SRTM3.gridSize;
-                stream.skipBytes(size * size * Short.SIZE);
+                stream.skipBytes(SRMT3_SIZE);
                 if (stream.read() == -1) {
                     version = Version.SRTM3;
                 } else {

@@ -18,11 +18,13 @@ package wanderroutejs.generationtasks;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-import org.slf4j.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wanderroutejs.MightyGenerat0r;
 import wanderroutejs.imageprocessing.ImageUtil2;
 import wanderroutejs.io.SRTMFileLocator;
@@ -60,7 +62,7 @@ public class TerrainCreationTask implements Runnable {
                 this.generateMaps(file);
             } catch (Exception ex) {
                 ex.printStackTrace();
-            }
+            }            
         }
     }
 
