@@ -13,8 +13,3 @@ Feature Overview:
 - automatic builder(input a OSM track)
   - download all needed SRTM tiles
   - generate all the needed resources for rendering
-
-
-PS:
-to build the WebTerrainGeneration project you first need to build the Darwin libs from:
-https://github.com/Danny02/DarwinsBox/
