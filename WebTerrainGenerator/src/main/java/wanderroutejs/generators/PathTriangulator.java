@@ -41,7 +41,7 @@ public class PathTriangulator
         Element pos = new Element(new GenericVector(DataType.FLOAT, 3), "Position");
         VertexBuffer vb = new VertexBuffer(pos, path.size());
         vb.fullyInitialize();
-        Iterator<ImmutableVector<Vector2>> iter = path.getVectorIterator();
+        Iterator<Vector2> iter = path.iterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
             float z = 0f;
@@ -59,7 +59,7 @@ public class PathTriangulator
         VertexBuffer vb = new VertexBuffer(pos, path.size());
         vb.fullyInitialize();
 
-        Iterator<ImmutableVector<Vector3>> iter = path.getVectorIterator();
+        Iterator<Vector3> iter = path.iterator();
         for (Vertex v : vb) {
             float[] vec = iter.next().getCoords();
             v.setAttribute(pos, vec[0], vec[1], vec[2]);
@@ -71,7 +71,7 @@ public class PathTriangulator
                                     Path<Vector3> path)
     {
         Path<Vector2> p2 = new Path<>();
-        for (ImmutableVector<Vector3> v : path.getVectorIterable()) {
+        for (Vector3 v : path) {
             float[] c = v.getCoords();
             p2.addPathElement(new Vector2(c[0], c[2]));
         }
@@ -135,7 +135,7 @@ public class PathTriangulator
         }
 
         Path<E> newPath = new Path<>();
-        Iterator<LineSegment<E>> segments = path.iterator();
+        Iterator<LineSegment<E>> segments = path.getLineSegmentIterator();
 
         int discardCount = 0;
 
@@ -143,7 +143,7 @@ public class PathTriangulator
         while (true) {
             ImmutableVector<E> start = last.getStart();
 
-            newPath.addPathElement(last.getStart());
+            newPath.addPathElement(last.getStart().clone());
             last = segments.next();
 
             E dir1 = start.clone().sub(last.getStart());
@@ -165,14 +165,14 @@ public class PathTriangulator
             }
 
             if (!segments.hasNext()) {
-                newPath.addPathElement(last.getStart());
+                newPath.addPathElement(last.getStart().clone());
                 break;
             }
         }
 
         System.out.println("discarded: " + discardCount + '(' + (discardCount / (float) path.size() * 100) + "%)");
 
-        newPath.addPathElement(last.getEnd());
+        newPath.addPathElement(last.getEnd().clone());
         return newPath;
     }
 
@@ -189,7 +189,7 @@ public class PathTriangulator
             throw new RuntimeException("The path is not complete, at least two elements have to exist!");
         }
         Deque<ImmutableVector<E>> poly = new LinkedList<>();
-        Iterator<LineSegment<E>> iter = path.iterator();
+        Iterator<LineSegment<E>> iter = path.getLineSegmentIterator();
 
         LineSegment<E> accLine = iter.next();
 
@@ -255,9 +255,9 @@ public class PathTriangulator
         Line<E> secondRight = Line.fromPoints(last.clone().add(right), mid.clone().add(right));
 
         try {
-            Vector3 leftResult = firstLeft.getIntersection(secondLeft);
-            Vector3 rightResult = firstRight.getIntersection(secondRight);
-            return new Vector3[]{leftResult, rightResult};
+            E leftResult = firstLeft.getIntersection(secondLeft);
+            E rightResult = firstRight.getIntersection(secondRight);
+            return new Vector3[]{leftResult.toVector3(), rightResult.toVector3()};
         } catch (Throwable t) {
             System.out.println(t);
             dir1.isParrallelTo(dir2);

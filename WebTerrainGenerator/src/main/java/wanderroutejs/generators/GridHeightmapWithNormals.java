@@ -19,9 +19,10 @@ package wanderroutejs.generators;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import wanderroutejs.datasources.HeightSource;
-import wanderroutejs.imageprocessing.*;
 
 import darwin.geometrie.data.*;
+import darwin.util.image.ImageUtil2;
+import darwin.util.image.NormalGeneratorOp;
 
 /**
  *

@@ -57,7 +57,7 @@ public class PathTestFrame extends JFrame
         g.setColor(Color.RED);
         ImmutableVector<Vector3> imgDim = new Vector3(image.getWidth(), 0, image.getHeight());
         ImmutableVector<Vector3> imgOfset = new Vector3(100, 0, 400);
-        for (LineSegment<Vector3> ls : path) {
+        for (LineSegment<Vector3> ls : path.getLineSegmentIterable()) {
             float scale = 4;
             float[] start = ls.getStart().clone().mul(imgDim).sub(imgOfset).mul(scale).getCoords();
             float[] end = ls.getEnd().clone().mul(imgDim).sub(imgOfset).mul(scale).getCoords();

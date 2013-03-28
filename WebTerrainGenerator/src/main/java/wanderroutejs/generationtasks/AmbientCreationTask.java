@@ -18,7 +18,8 @@ package wanderroutejs.generationtasks;
 
 import java.awt.image.*;
 import java.util.concurrent.Callable;
-import wanderroutejs.imageprocessing.*;
+
+import darwin.util.image.*;
 
 /**
  *

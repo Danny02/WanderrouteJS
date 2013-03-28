@@ -18,8 +18,9 @@ package wanderroutejs.datasources;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import wanderroutejs.imageprocessing.*;
 
+import darwin.util.image.GaussBlurOp;
+import darwin.util.image.ImageUtil2;
 import static java.lang.Math.*;
 
 /**

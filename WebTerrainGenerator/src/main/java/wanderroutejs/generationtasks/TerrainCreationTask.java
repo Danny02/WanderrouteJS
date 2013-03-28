@@ -23,10 +23,10 @@ import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import darwin.util.image.ImageUtil2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import wanderroutejs.MightyGenerat0r;
-import wanderroutejs.imageprocessing.ImageUtil2;
 import wanderroutejs.io.SRTMFileLocator;
 
 /**
@@ -77,7 +77,7 @@ public class TerrainCreationTask implements Runnable {
 
         logger.info("Start loading heightmap texture for " + file + "...");
         long time = System.currentTimeMillis();
-        BufferedImage height = ImageUtil2.loadImage(file);
+        BufferedImage height = ImageUtil2.loadImageByMimeType(file);
         logger.info("\tFinished loading in " + (System.currentTimeMillis() - time));
 
         Future<BufferedImage> normalMap = outer.submitTask("normal map creation", new NormalMapCreationTask(height, normalScale));
